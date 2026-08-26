@@ -1,0 +1,16 @@
+{
+  "manifest_version": "1.0",
+  "dataset_id": "vobl-adc-2025-11-27-bootstrap-v0.1.0",
+  "source_rights_status": "UNCONFIRMED_PERMISSION_REQUIRED",
+  "permitted_by_current_project_policy": {
+    "internal_provisional_transcription": true,
+    "operational_use": false,
+    "external_redistribution": false,
+    "source_or_crop_redistribution": false,
+    "model_training": false,
+    "managed_ocr_upload": false
+  },
+  "legal_interpretation": false,
+  "note": "These are conservative project controls, not a legal determination. A named Rights/Legal Owner must approve actual permissions.",
+  "required_approval_reference": null
+}

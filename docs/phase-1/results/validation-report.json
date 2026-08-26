@@ -1,0 +1,172 @@
+{
+  "report_version": "1.0",
+  "dataset_id": "vobl-adc-2025-11-27-bootstrap-v0.1.0",
+  "status": "PASS_WITH_EXPECTED_BLOCKERS",
+  "operational_use": false,
+  "counts": {
+    "EXPECTED_BLOCKER": 4,
+    "INFO": 2,
+    "PASS": 25
+  },
+  "checks": [
+    {
+      "id": "input.json",
+      "status": "PASS",
+      "detail": "Input is valid JSON with an object root."
+    },
+    {
+      "id": "dataset.provisional_status",
+      "status": "PASS",
+      "detail": "Dataset is explicitly provisional and not gold."
+    },
+    {
+      "id": "dataset.non_operational",
+      "status": "PASS",
+      "detail": "Operational use is explicitly false."
+    },
+    {
+      "id": "source.original_bytes",
+      "status": "EXPECTED_BLOCKER",
+      "detail": "Original source bytes and SHA-256 are unavailable; PDF/OCR evidence benchmark remains blocked."
+    },
+    {
+      "id": "source.rights",
+      "status": "EXPECTED_BLOCKER",
+      "detail": "Source processing/training rights remain unconfirmed."
+    },
+    {
+      "id": "airport.icao_format",
+      "status": "PASS",
+      "detail": "ICAO identifier VOBL has four uppercase letters."
+    },
+    {
+      "id": "airport.arp_range",
+      "status": "PASS",
+      "detail": "ARP coordinates are within longitude/latitude ranges."
+    },
+    {
+      "id": "airport.arp_axis_crs",
+      "status": "PASS",
+      "detail": "Target output uses OGC:CRS84 longitude/latitude order."
+    },
+    {
+      "id": "airport.elevation_conflict",
+      "status": "PASS",
+      "detail": "The 3003 FT and 3001 FT claims remain separate, unresolved, and unselected."
+    },
+    {
+      "id": "runways.pair_count",
+      "status": "PASS",
+      "detail": "Exactly two provisional runway-pair records are present."
+    },
+    {
+      "id": "runway.09L-27R.reciprocal_pair",
+      "status": "PASS",
+      "detail": "09L/27R is a consistent reciprocal designator pair."
+    },
+    {
+      "id": "runway.09L-27R.dimensions",
+      "status": "PASS",
+      "detail": "09L/27R preserves the displayed 4000 M x 45 M dimensions."
+    },
+    {
+      "id": "runway_direction.09L.format",
+      "status": "PASS",
+      "detail": "Runway direction 09L has a valid designator format."
+    },
+    {
+      "id": "runway_direction.09L.displayed_direction",
+      "status": "PASS",
+      "detail": "Displayed direction for 09L is within 0-359 degrees."
+    },
+    {
+      "id": "threshold.09L.elevations",
+      "status": "PASS",
+      "detail": "Threshold and TDZ elevations for 09L are positive and expressed in FT."
+    },
+    {
+      "id": "runway_direction.27R.format",
+      "status": "PASS",
+      "detail": "Runway direction 27R has a valid designator format."
+    },
+    {
+      "id": "runway_direction.27R.displayed_direction",
+      "status": "PASS",
+      "detail": "Displayed direction for 27R is within 0-359 degrees."
+    },
+    {
+      "id": "threshold.27R.elevations",
+      "status": "PASS",
+      "detail": "Threshold and TDZ elevations for 27R are positive and expressed in FT."
+    },
+    {
+      "id": "runway.09L-27R.threshold_distance",
+      "status": "INFO",
+      "detail": "Threshold-to-threshold distance is 3994.3 m; this is not required to equal declared runway length because thresholds may be displaced.",
+      "threshold_distance_m": 3994.3
+    },
+    {
+      "id": "runway.09R-27L.reciprocal_pair",
+      "status": "PASS",
+      "detail": "09R/27L is a consistent reciprocal designator pair."
+    },
+    {
+      "id": "runway.09R-27L.dimensions",
+      "status": "PASS",
+      "detail": "09R/27L preserves the displayed 4000 M x 45 M dimensions."
+    },
+    {
+      "id": "runway_direction.09R.format",
+      "status": "PASS",
+      "detail": "Runway direction 09R has a valid designator format."
+    },
+    {
+      "id": "runway_direction.09R.displayed_direction",
+      "status": "PASS",
+      "detail": "Displayed direction for 09R is within 0-359 degrees."
+    },
+    {
+      "id": "threshold.09R.elevations",
+      "status": "PASS",
+      "detail": "Threshold and TDZ elevations for 09R are positive and expressed in FT."
+    },
+    {
+      "id": "runway_direction.27L.format",
+      "status": "PASS",
+      "detail": "Runway direction 27L has a valid designator format."
+    },
+    {
+      "id": "runway_direction.27L.displayed_direction",
+      "status": "PASS",
+      "detail": "Displayed direction for 27L is within 0-359 degrees."
+    },
+    {
+      "id": "threshold.27L.elevations",
+      "status": "PASS",
+      "detail": "Threshold and TDZ elevations for 27L are positive and expressed in FT."
+    },
+    {
+      "id": "runway.09R-27L.threshold_distance",
+      "status": "INFO",
+      "detail": "Threshold-to-threshold distance is 3681.7 m; this is not required to equal declared runway length because thresholds may be displaced.",
+      "threshold_distance_m": 3681.7
+    },
+    {
+      "id": "runways.direction_inventory",
+      "status": "PASS",
+      "detail": "Direction inventory is exactly 09L, 27R, 09R, and 27L."
+    },
+    {
+      "id": "taxiways.completeness",
+      "status": "EXPECTED_BLOCKER",
+      "detail": "Taxiways are explicitly present but not extracted; empty features cannot be interpreted as absence."
+    },
+    {
+      "id": "runway_holding_positions.completeness",
+      "status": "EXPECTED_BLOCKER",
+      "detail": "Holding positions are explicitly present but not extracted; empty features cannot be interpreted as absence."
+    }
+  ],
+  "failure_count": 0,
+  "known_blockers_are_not_failures": true
+}

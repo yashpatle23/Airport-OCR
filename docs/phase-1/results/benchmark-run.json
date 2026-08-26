@@ -1,0 +1,42 @@
+{
+  "run_manifest_version": "1.0",
+  "generated_at": "2026-08-19T00:00:00+00:00",
+  "status": "PASS_WITH_EXPECTED_BLOCKERS",
+  "operational_use": false,
+  "python_version": "3.9.25",
+  "platform": "Linux-6.1.177-224.371.amzn2023.x86_64-x86_64-with-glibc2.34",
+  "input": {
+    "path": "phase-1/data/vobl-bootstrap-observations.json",
+    "sha256": "9eae2d3293d11e1783fb7c1fc1bcdc06ba50f90cb7114abe493f86197c59eab2"
+  },
+  "script": {
+    "path": "/projects/sandbox/phase-1/scripts/normalize_and_validate.py",
+    "sha256": "1a4764f71d74a310975563c72acebd7406bcc764148f4ce639d3b2aa03aaeca2"
+  },
+  "outputs": [
+    {
+      "path": "phase-1/results/validation-report.json",
+      "sha256": "7a833a5059b3a392f7ada787bf55d04bb8acda1199ce3b964be9ee655d923080",
+      "bytes": 5483
+    },
+    {
+      "path": "phase-1/results/vobl-normalized.json",
+      "sha256": "29697abeb34271b896f173ad5d07fcb7ab10f291e2997c28e3ead60f28157ad9",
+      "bytes": 11443
+    },
+    {
+      "path": "phase-1/results/vobl-features.geojson",
+      "sha256": "c20870ab774d76f50a1ba33fd7d05d50efe5c52a18d2f0f493b956e134307eec",
+      "bytes": 4786
+    }
+  ],
+  "elapsed_ms": 1.407,
+  "external_api_calls": 0,
+  "estimated_variable_cost_usd": 0.0,
+  "limitations": [
+    "Manual provisional transcription is the input; no OCR was executed.",
+    "Original PDF/image bytes and source SHA-256 are unavailable.",
+    "Taxiway and runway-holding extraction remains blocked.",
+    "No operational use is authorized."
+  ]
+}

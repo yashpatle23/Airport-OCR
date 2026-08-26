@@ -1,0 +1,121 @@
+{
+  "schema_version": "1.0",
+  "register_version": "1.0",
+  "generated_at": "2026-08-19",
+  "project": "VOBL aerodrome chart extraction",
+  "default_intended_use": "internal_research_evaluation_non_operational",
+  "sources": [
+    {
+      "source_id": "AAI-AIP-VOBL-ADC-2025-11-27-AMDT-06-2025",
+      "source_class": "A2_OFFICIAL_CHART",
+      "airport_icao": "VOBL",
+      "airport_name": "Kempegowda International Airport Bengaluru",
+      "chart_type": "Aerodrome Chart (ADC)",
+      "chart_identifier": "AD 2 VOBL 1-101",
+      "displayed_date": "2025-11-27",
+      "aeronautical_information_month": "2025-08",
+      "amendment": "AMDT 06/2025",
+      "publisher_context": [
+        "AIP India",
+        "Airports Authority of India",
+        "Bangalore International Airport Limited (BIAL)"
+      ],
+      "official_url": "https://aim-india.aai.aero/eaip/eaip-v2-06-2025/eAIP/VOBL-ADC.pdf?amdt=show",
+      "discovery_method": "Official-domain web search result matched chart title and attached chart metadata",
+      "discovered_at": "2026-08-19",
+      "retrieval": {
+        "status": "LOCATED_NOT_ACQUIRED",
+        "attempts": [
+          {
+            "method": "HTTPS curl with redirects and browser user-agent",
+            "result": "HTTP 403 Forbidden",
+            "attempted_at": "2026-08-19"
+          },
+          {
+            "method": "web content fetch",
+            "result": "HTTP 403 Forbidden",
+            "attempted_at": "2026-08-19"
+          },
+          {
+            "method": "sandbox headless browser",
+            "result": "Network tunnel connection failed in sandbox",
+            "attempted_at": "2026-08-19"
+          }
+        ],
+        "required_next_action": "User or authorized source steward must upload the original PDF or provide an accessible authorized delivery channel."
+      },
+      "local_file": null,
+      "sha256": null,
+      "media_type": "application/pdf",
+      "byte_size": null,
+      "integrity_status": "PENDING_ORIGINAL_BYTES",
+      "rights": {
+        "status": "UNCONFIRMED_PERMISSION_REQUIRED",
+        "disclaimer_url": "https://aim-india.aai.aero/sites/default/files/menu_item_files/disclaimer_clause.pdf",
+        "assessment": "AAI's indexed disclaimer indicates restrictive intellectual-property terms and express permission requirements. Public discoverability is not treated as permission to copy, redistribute, display, or train models.",
+        "storage_allowed": null,
+        "internal_processing_allowed": null,
+        "evidence_display_allowed": null,
+        "derived_output_allowed": null,
+        "redistribution_allowed": null,
+        "model_training_allowed": null,
+        "rights_owner": null,
+        "approval_reference": null
+      },
+      "release_status": "BLOCKED",
+      "blockers": [
+        "Original PDF bytes not acquired",
+        "SHA-256 unavailable",
+        "Rights not confirmed",
+        "Named source steward not assigned"
+      ]
+    },
+    {
+      "source_id": "USER-ATTACHMENT-VOBL-ADC-HIGHER-RES-2026-08-19",
+      "source_class": "E_USER_SUPPLIED_IMAGE",
+      "airport_icao": "VOBL",
+      "chart_identifier_observed": "AD 2 VOBL 1-101",
+      "displayed_date_observed": "2025-11-27",
+      "amendment_observed": "AMDT 06/2025",
+      "relationship": "Visual representation consistent with the official URL source above",
+      "retrieval": {
+        "status": "VISIBLE_IN_CONVERSATION_NOT_MAPPED_TO_WORKSPACE",
+        "required_next_action": "Upload the original PDF as a file for hashing and controlled intake."
+      },
+      "local_file": null,
+      "sha256": null,
+      "media_type": "image/unknown",
+      "integrity_status": "UNHASHED_SESSION_ATTACHMENT",
+      "rights": {
+        "status": "UNKNOWN",
+        "assessment": "User possession or attachment does not establish AAI/BIAL reuse rights."
+      },
+      "release_status": "DISCOVERY_ONLY"
+    },
+    {
+      "source_id": "AAI-EAIP-VOBL-AD2.1-TEXT-INDEXED",
+      "source_class": "A1_OFFICIAL_EAIP_TEXT",
+      "airport_icao": "VOBL",
+      "official_url": "https://aim-india.aai.aero/eaip-v2/eAIP/EC-AD-2.1VOBL-en-GB.pdf",
+      "retrieval": {
+        "status": "INDEXED_NOT_ACQUIRED",
+        "observation": "Search result reports ARP 131156N 0774220E and aerodrome elevation 3001 FT.",
+        "limitation": "Effective edition was not established from the indexed result and direct fetch was blocked."
+      },
+      "sha256": null,
+      "rights": {
+        "status": "UNCONFIRMED_PERMISSION_REQUIRED"
+      },
+      "release_status": "CONFLICT_EVIDENCE_ONLY",
+      "conflicts": [
+        {
+          "field": "aerodrome_elevation_ft",
+          "value": 3001,
+          "conflicts_with_source_id": "AAI-AIP-VOBL-ADC-2025-11-27-AMDT-06-2025",
+          "other_observed_value": 3003,
+          "status": "OPEN_EFFECTIVE_EDITION_RECONCILIATION_REQUIRED"
+        }
+      ]
+    }
+  ]
+}

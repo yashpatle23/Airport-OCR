@@ -1,0 +1,381 @@
+{
+  "schema_version": "1.0.0",
+  "dataset_id": "vobl-adc-2025-11-27-bootstrap-v0.1.0",
+  "status": "PROVISIONAL_RESEARCH_ONLY",
+  "operational_use": false,
+  "source": {
+    "chart_identifier": "AD 2 VOBL 1-101",
+    "displayed_date": "2025-11-27",
+    "amendment": "AMDT 06/2025",
+    "original_sha256": null,
+    "original_bytes_available": false,
+    "rights_status": "UNCONFIRMED_PERMISSION_REQUIRED"
+  },
+  "airport": {
+    "feature_id": "airport:VOBL",
+    "icao": "VOBL",
+    "name": "Kempegowda International Airport Bengaluru",
+    "arp": {
+      "type": "Point",
+      "coordinates": [
+        77.7055555556,
+        13.1988888889
+      ],
+      "crs": "OGC:CRS84",
+      "axis_order": "longitude_latitude",
+      "source": {
+        "latitude": "13° 11′ 56″ N",
+        "longitude": "077° 42′ 20″ E",
+        "latitude_parts": {
+          "source": "13° 11′ 56″ N",
+          "degrees": 13,
+          "minutes": 11,
+          "seconds": "56",
+          "hemisphere": "N",
+          "seconds_decimal_places": 0
+        },
+        "longitude_parts": {
+          "source": "077° 42′ 20″ E",
+          "degrees": 77,
+          "minutes": 42,
+          "seconds": "20",
+          "hemisphere": "E",
+          "seconds_decimal_places": 0
+        }
+      },
+      "status": "DERIVED_FROM_PROVISIONAL_DMS_TRANSCRIPTION"
+    },
+    "elevation": {
+      "claims": [
+        {
+          "claim_id": "claim:vobl-elev:chart-3003",
+          "source_id": "USER-ATTACHMENT-VOBL-ADC-HIGHER-RES-2026-08-19",
+          "source_text": "AD ELEVATION. 3003 ft",
+          "value": 3003,
+          "unit": "FT",
+          "vertical_datum": null,
+          "effective_alignment": "CHART_DISPLAYED_DATE_KNOWN",
+          "evidence": {
+            "page": 1,
+            "region_hint": "chart header",
+            "bbox": null
+          }
+        },
+        {
+          "claim_id": "claim:vobl-elev:indexed-eaip-3001",
+          "source_id": "AAI-EAIP-VOBL-AD2.1-TEXT-INDEXED",
+          "source_text": "3001 FT",
+          "value": 3001,
+          "unit": "FT",
+          "vertical_datum": null,
+          "effective_alignment": "UNKNOWN_EDITION",
+          "evidence": {
+            "page": null,
+            "region_hint": "official-domain search index result",
+            "bbox": null
+          }
+        }
+      ],
+      "selected_value": null,
+      "conflict_status": "OPEN_EFFECTIVE_EDITION_RECONCILIATION_REQUIRED"
+    }
+  },
+  "runways": [
+    {
+      "feature_id": "runway:VOBL:09L-27R",
+      "designator_pair": "09L/27R",
+      "declared_length": {
+        "source_text": "4000 M",
+        "value": 4000,
+        "unit": "M"
+      },
+      "declared_width": {
+        "source_text": "45 M",
+        "value": 45,
+        "unit": "M"
+      },
+      "directions": [
+        {
+          "feature_id": "runway-direction:VOBL:09L",
+          "designator": "09L",
+          "displayed_direction": {
+            "source_text": "092°4′",
+            "value": 92.0666667,
+            "unit": "DEG"
+          },
+          "threshold": {
+            "feature_id": "threshold:VOBL:09L",
+            "designator": "09L",
+            "position": {
+              "type": "Point",
+              "coordinates": [
+                77.6860722222,
+                13.2070166667
+              ],
+              "crs": "OGC:CRS84",
+              "axis_order": "longitude_latitude",
+              "source": {
+                "latitude": "13°12′25.26″N",
+                "longitude": "077°41′09.86″E",
+                "latitude_parts": {
+                  "source": "13°12′25.26″N",
+                  "degrees": 13,
+                  "minutes": 12,
+                  "seconds": "25.26",
+                  "hemisphere": "N",
+                  "seconds_decimal_places": 2
+                },
+                "longitude_parts": {
+                  "source": "077°41′09.86″E",
+                  "degrees": 77,
+                  "minutes": 41,
+                  "seconds": "9.86",
+                  "hemisphere": "E",
+                  "seconds_decimal_places": 2
+                }
+              },
+              "status": "DERIVED_FROM_PROVISIONAL_DMS_TRANSCRIPTION"
+            },
+            "elevation": {
+              "source_text": "3003",
+              "value": 3003,
+              "unit": "FT",
+              "vertical_datum": null
+            },
+            "tdz_elevation": {
+              "source_text": "3003",
+              "value": 3003,
+              "unit": "FT",
+              "vertical_datum": null
+            }
+          }
+        },
+        {
+          "feature_id": "runway-direction:VOBL:27R",
+          "designator": "27R",
+          "displayed_direction": {
+            "source_text": "272°4′",
+            "value": 272.0666667,
+            "unit": "DEG"
+          },
+          "threshold": {
+            "feature_id": "threshold:VOBL:27R",
+            "designator": "27R",
+            "position": {
+              "type": "Point",
+              "coordinates": [
+                77.7229694444,
+                13.2068472222
+              ],
+              "crs": "OGC:CRS84",
+              "axis_order": "longitude_latitude",
+              "source": {
+                "latitude": "13°12′24.65″N",
+                "longitude": "077°43′22.69″E",
+                "latitude_parts": {
+                  "source": "13°12′24.65″N",
+                  "degrees": 13,
+                  "minutes": 12,
+                  "seconds": "24.65",
+                  "hemisphere": "N",
+                  "seconds_decimal_places": 2
+                },
+                "longitude_parts": {
+                  "source": "077°43′22.69″E",
+                  "degrees": 77,
+                  "minutes": 43,
+                  "seconds": "22.69",
+                  "hemisphere": "E",
+                  "seconds_decimal_places": 2
+                }
+              },
+              "status": "DERIVED_FROM_PROVISIONAL_DMS_TRANSCRIPTION"
+            },
+            "elevation": {
+              "source_text": "2919",
+              "value": 2919,
+              "unit": "FT",
+              "vertical_datum": null
+            },
+            "tdz_elevation": {
+              "source_text": "2937",
+              "value": 2937,
+              "unit": "FT",
+              "vertical_datum": null
+            }
+          }
+        }
+      ],
+      "threshold_connector": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            77.6860722222,
+            13.2070166667
+          ],
+          [
+            77.7229694444,
+            13.2068472222
+          ]
+        ],
+        "status": "DERIVED_THRESHOLD_CONNECTOR_NOT_RUNWAY_EXTENT",
+        "distance_m": 3994.3
+      },
+      "runway_geometry": null
+    },
+    {
+      "feature_id": "runway:VOBL:09R-27L",
+      "designator_pair": "09R/27L",
+      "declared_length": {
+        "source_text": "4000 M",
+        "value": 4000,
+        "unit": "M"
+      },
+      "declared_width": {
+        "source_text": "45 M",
+        "value": 45,
+        "unit": "M"
+      },
+      "directions": [
+        {
+          "feature_id": "runway-direction:VOBL:09R",
+          "designator": "09R",
+          "displayed_direction": {
+            "source_text": "092°4′",
+            "value": 92.0666667,
+            "unit": "DEG"
+          },
+          "threshold": {
+            "feature_id": "threshold:VOBL:09R",
+            "designator": "09R",
+            "position": {
+              "type": "Point",
+              "coordinates": [
+                77.6899777778,
+                13.1897333333
+              ],
+              "crs": "OGC:CRS84",
+              "axis_order": "longitude_latitude",
+              "source": {
+                "latitude": "13°11′23.04″N",
+                "longitude": "077°41′23.92″E",
+                "latitude_parts": {
+                  "source": "13°11′23.04″N",
+                  "degrees": 13,
+                  "minutes": 11,
+                  "seconds": "23.04",
+                  "hemisphere": "N",
+                  "seconds_decimal_places": 2
+                },
+                "longitude_parts": {
+                  "source": "077°41′23.92″E",
+                  "degrees": 77,
+                  "minutes": 41,
+                  "seconds": "23.92",
+                  "hemisphere": "E",
+                  "seconds_decimal_places": 2
+                }
+              },
+              "status": "DERIVED_FROM_PROVISIONAL_DMS_TRANSCRIPTION"
+            },
+            "elevation": {
+              "source_text": "2973",
+              "value": 2973,
+              "unit": "FT",
+              "vertical_datum": null
+            },
+            "tdz_elevation": {
+              "source_text": "2973",
+              "value": 2973,
+              "unit": "FT",
+              "vertical_datum": null
+            }
+          }
+        },
+        {
+          "feature_id": "runway-direction:VOBL:27L",
+          "designator": "27L",
+          "displayed_direction": {
+            "source_text": "272°4′",
+            "value": 272.0666667,
+            "unit": "DEG"
+          },
+          "threshold": {
+            "feature_id": "threshold:VOBL:27L",
+            "designator": "27L",
+            "position": {
+              "type": "Point",
+              "coordinates": [
+                77.7239833333,
+                13.1894222222
+              ],
+              "crs": "OGC:CRS84",
+              "axis_order": "longitude_latitude",
+              "source": {
+                "latitude": "13°11′21.92″N",
+                "longitude": "077°43′26.34″E",
+                "latitude_parts": {
+                  "source": "13°11′21.92″N",
+                  "degrees": 13,
+                  "minutes": 11,
+                  "seconds": "21.92",
+                  "hemisphere": "N",
+                  "seconds_decimal_places": 2
+                },
+                "longitude_parts": {
+                  "source": "077°43′26.34″E",
+                  "degrees": 77,
+                  "minutes": 43,
+                  "seconds": "26.34",
+                  "hemisphere": "E",
+                  "seconds_decimal_places": 2
+                }
+              },
+              "status": "DERIVED_FROM_PROVISIONAL_DMS_TRANSCRIPTION"
+            },
+            "elevation": {
+              "source_text": "2964",
+              "value": 2964,
+              "unit": "FT",
+              "vertical_datum": null
+            },
+            "tdz_elevation": {
+              "source_text": "2965",
+              "value": 2965,
+              "unit": "FT",
+              "vertical_datum": null
+            }
+          }
+        }
+      ],
+      "threshold_connector": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            77.6899777778,
+            13.1897333333
+          ],
+          [
+            77.7239833333,
+            13.1894222222
+          ]
+        ],
+        "status": "DERIVED_THRESHOLD_CONNECTOR_NOT_RUNWAY_EXTENT",
+        "distance_m": 3681.7
+      },
+      "runway_geometry": null
+    }
+  ],
+  "taxiways": {
+    "features": [],
+    "presence_observed": true,
+    "completeness_status": "BLOCKED_SOURCE_BYTES_REQUIRED",
+    "empty_array_semantics": "NOT_EXTRACTED_NOT_ABSENT"
+  },
+  "runway_holding_positions": {
+    "features": [],
+    "presence_observed": true,
+    "completeness_status": "BLOCKED_SOURCE_BYTES_REQUIRED",
+    "empty_array_semantics": "NOT_EXTRACTED_NOT_ABSENT"
+  }
+}

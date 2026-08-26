@@ -1,0 +1,172 @@
+{
+  "type": "FeatureCollection",
+  "name": "VOBL Phase 1 provisional airport and runway-threshold features",
+  "properties": {
+    "dataset_id": "vobl-adc-2025-11-27-bootstrap-v0.1.0",
+    "status": "PROVISIONAL_RESEARCH_ONLY",
+    "operational_use": false,
+    "crs_semantics": "RFC 7946 longitude/latitude (OGC:CRS84)",
+    "taxiway_completeness": "BLOCKED_SOURCE_BYTES_REQUIRED",
+    "runway_holding_position_completeness": "BLOCKED_SOURCE_BYTES_REQUIRED",
+    "warning": "Runway lines are threshold connectors, not surveyed runway extents."
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "airport:VOBL",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7055555556,
+          13.1988888889
+        ]
+      },
+      "properties": {
+        "feature_type": "aerodrome_reference_point",
+        "airport_icao": "VOBL",
+        "airport_name": "Kempegowda International Airport Bengaluru",
+        "elevation_status": "OPEN_EFFECTIVE_EDITION_RECONCILIATION_REQUIRED",
+        "selected_elevation": null,
+        "status": "PROVISIONAL_RESEARCH_ONLY"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "threshold:VOBL:09L",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6860722222,
+          13.2070166667
+        ]
+      },
+      "properties": {
+        "feature_type": "runway_threshold",
+        "airport_icao": "VOBL",
+        "designator": "09L",
+        "threshold_elevation_ft": 3003,
+        "tdz_elevation_ft": 3003,
+        "source_latitude": "13°12′25.26″N",
+        "source_longitude": "077°41′09.86″E",
+        "status": "PROVISIONAL_RESEARCH_ONLY"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "threshold:VOBL:27R",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7229694444,
+          13.2068472222
+        ]
+      },
+      "properties": {
+        "feature_type": "runway_threshold",
+        "airport_icao": "VOBL",
+        "designator": "27R",
+        "threshold_elevation_ft": 2919,
+        "tdz_elevation_ft": 2937,
+        "source_latitude": "13°12′24.65″N",
+        "source_longitude": "077°43′22.69″E",
+        "status": "PROVISIONAL_RESEARCH_ONLY"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "threshold:VOBL:09R",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.6899777778,
+          13.1897333333
+        ]
+      },
+      "properties": {
+        "feature_type": "runway_threshold",
+        "airport_icao": "VOBL",
+        "designator": "09R",
+        "threshold_elevation_ft": 2973,
+        "tdz_elevation_ft": 2973,
+        "source_latitude": "13°11′23.04″N",
+        "source_longitude": "077°41′23.92″E",
+        "status": "PROVISIONAL_RESEARCH_ONLY"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "threshold:VOBL:27L",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.7239833333,
+          13.1894222222
+        ]
+      },
+      "properties": {
+        "feature_type": "runway_threshold",
+        "airport_icao": "VOBL",
+        "designator": "27L",
+        "threshold_elevation_ft": 2964,
+        "tdz_elevation_ft": 2965,
+        "source_latitude": "13°11′21.92″N",
+        "source_longitude": "077°43′26.34″E",
+        "status": "PROVISIONAL_RESEARCH_ONLY"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "runway:VOBL:09L-27R",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            77.6860722222,
+            13.2070166667
+          ],
+          [
+            77.7229694444,
+            13.2068472222
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "runway_threshold_connector",
+        "airport_icao": "VOBL",
+        "designator_pair": "09L/27R",
+        "declared_length_m": 4000,
+        "declared_width_m": 45,
+        "connector_distance_m": 3994.3,
+        "geometry_role": "DERIVED_THRESHOLD_CONNECTOR_NOT_RUNWAY_EXTENT",
+        "status": "PROVISIONAL_RESEARCH_ONLY"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "runway:VOBL:09R-27L",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            77.6899777778,
+            13.1897333333
+          ],
+          [
+            77.7239833333,
+            13.1894222222
+          ]
+        ]
+      },
+      "properties": {
+        "feature_type": "runway_threshold_connector",
+        "airport_icao": "VOBL",
+        "designator_pair": "09R/27L",
+        "declared_length_m": 4000,
+        "declared_width_m": 45,
+        "connector_distance_m": 3681.7,
+        "geometry_role": "DERIVED_THRESHOLD_CONNECTOR_NOT_RUNWAY_EXTENT",
+        "status": "PROVISIONAL_RESEARCH_ONLY"
+      }
+    }
+  ]
+}
