@@ -23,6 +23,13 @@ quarantine/
 *.tif
 *.tiff
 
+# Large regenerable geometry/word exports (produce from the PDF instead)
+holding_candidates.json
+holding_clusters.json
+drawings.json
+drawings_summary.json
+vobl_words.json
+
 # OS/editor
 .DS_Store
 *.swp
