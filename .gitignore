@@ -30,6 +30,9 @@ drawings.json
 drawings_summary.json
 vobl_words.json
 
+# Demo run artifacts
+demo_out/
+
 # OS/editor
 .DS_Store
 *.swp
