@@ -1,0 +1,11 @@
+{
+  "manifest_version": "1.0",
+  "splits": {
+    "development_bootstrap": ["vobl-adc-2025-11-27-bootstrap-v0.1.0"],
+    "validation": [],
+    "test": [],
+    "out_of_distribution_test": []
+  },
+  "statistical_benchmark_ready": false,
+  "reason": "One airport edition cannot estimate generalization. Future splits must be by complete airport and publisher/template rather than random crops."
+}

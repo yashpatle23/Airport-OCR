@@ -1,0 +1,214 @@
+{
+  "schema_version": "1.0.0",
+  "dataset_id": "vobl-adc-2025-11-27-bootstrap-v0.1.0",
+  "dataset_status": "PROVISIONAL_BOOTSTRAP_NOT_GOLD",
+  "operational_use": false,
+  "airport_icao": "VOBL",
+  "source": {
+    "source_id": "USER-ATTACHMENT-VOBL-ADC-HIGHER-RES-2026-08-19",
+    "official_source_id": "AAI-AIP-VOBL-ADC-2025-11-27-AMDT-06-2025",
+    "chart_identifier": "AD 2 VOBL 1-101",
+    "chart_type": "Aerodrome Chart",
+    "displayed_date": "2025-11-27",
+    "aeronautical_information_month": "2025-08",
+    "amendment": "AMDT 06/2025",
+    "publisher_context": ["AIP India", "AAI", "BIAL"],
+    "original_bytes_available": false,
+    "sha256": null,
+    "rights_status": "UNCONFIRMED_PERMISSION_REQUIRED",
+    "evidence_coordinate_space": null,
+    "limitations": [
+      "Attachment is visually available but not mapped to workspace bytes.",
+      "No page-space evidence bounding boxes can be recorded.",
+      "All transcriptions require verification against the original PDF and two-person review."
+    ]
+  },
+  "feature_group_completeness": {
+    "airport": {
+      "status": "PROVISIONAL_COMPLETE_FOR_VISIBLE_FIELDS",
+      "reason": "Identity, ARP, and displayed aerodrome elevation are legible."
+    },
+    "runways": {
+      "status": "PROVISIONAL_COMPLETE_FOR_VISIBLE_TABLE_FIELDS",
+      "reason": "Two runway pairs and four threshold rows are legible; geometry is not extracted."
+    },
+    "taxiways": {
+      "status": "BLOCKED_SOURCE_BYTES_REQUIRED",
+      "reason": "Taxiway features are visible, but a complete identifier and geometry inventory cannot be produced reliably from the chat raster."
+    },
+    "runway_holding_positions": {
+      "status": "BLOCKED_SOURCE_BYTES_REQUIRED",
+      "reason": "Holding markings are visible, but complete identity, association, and line geometry require source bytes and evidence coordinates."
+    },
+    "airport_coordinates_elevation": {
+      "status": "PROVISIONAL_WITH_OPEN_CONFLICT",
+      "reason": "ARP is legible; displayed 3003 ft elevation conflicts with a separately indexed AAI eAIP 3001 FT claim whose effective edition is unresolved."
+    }
+  },
+  "airport": {
+    "feature_id": "airport:VOBL",
+    "feature_type": "airport",
+    "status": "PROVISIONAL_OBSERVATION",
+    "icao": {
+      "source_text": "VOBL",
+      "value": "VOBL",
+      "evidence": {"page": 1, "region_hint": "chart header/title", "bbox": null}
+    },
+    "name": {
+      "source_text": "KEMPEGOWDA INTERNATIONAL AIRPORT BENGALURU",
+      "value": "Kempegowda International Airport Bengaluru",
+      "evidence": {"page": 1, "region_hint": "upper-right title", "bbox": null}
+    },
+    "arp": {
+      "feature_id": "arp:VOBL",
+      "feature_type": "aerodrome_reference_point",
+      "latitude_source": "13° 11′ 56″ N",
+      "longitude_source": "077° 42′ 20″ E",
+      "horizontal_crs": "WGS 84 assumed from aeronautical publication context; must be confirmed from source metadata",
+      "normalized_crs_target": "OGC:CRS84",
+      "axis_order_target": "longitude_latitude",
+      "evidence": {"page": 1, "region_hint": "chart header", "bbox": null},
+      "review_status": "UNREVIEWED"
+    },
+    "elevation": {
+      "feature_id": "elevation:VOBL",
+      "feature_type": "aerodrome_elevation",
+      "claims": [
+        {
+          "claim_id": "claim:vobl-elev:chart-3003",
+          "source_id": "USER-ATTACHMENT-VOBL-ADC-HIGHER-RES-2026-08-19",
+          "source_text": "AD ELEVATION. 3003 ft",
+          "value": 3003,
+          "unit": "FT",
+          "vertical_datum": null,
+          "effective_alignment": "CHART_DISPLAYED_DATE_KNOWN",
+          "evidence": {"page": 1, "region_hint": "chart header", "bbox": null}
+        },
+        {
+          "claim_id": "claim:vobl-elev:indexed-eaip-3001",
+          "source_id": "AAI-EAIP-VOBL-AD2.1-TEXT-INDEXED",
+          "source_text": "3001 FT",
+          "value": 3001,
+          "unit": "FT",
+          "vertical_datum": null,
+          "effective_alignment": "UNKNOWN_EDITION",
+          "evidence": {"page": null, "region_hint": "official-domain search index result", "bbox": null}
+        }
+      ],
+      "conflict_status": "OPEN_EFFECTIVE_EDITION_RECONCILIATION_REQUIRED",
+      "selected_value": null,
+      "review_status": "UNREVIEWED"
+    }
+  },
+  "runways": [
+    {
+      "feature_id": "runway:VOBL:09L-27R",
+      "feature_type": "runway",
+      "status": "PROVISIONAL_OBSERVATION",
+      "designator_pair": "09L/27R",
+      "length": {"source_text": "4000 M", "value": 4000, "unit": "M"},
+      "width": {"source_text": "45 M", "value": 45, "unit": "M"},
+      "geometry": null,
+      "evidence": {"page": 1, "region_hint": "north runway label and runway table", "bbox": null},
+      "directions": [
+        {
+          "feature_id": "runway-direction:VOBL:09L",
+          "feature_type": "runway_direction",
+          "designator": "09L",
+          "displayed_direction": {"source_text": "092°", "value": 92, "unit": "DEG"},
+          "threshold": {
+            "feature_id": "threshold:VOBL:09L",
+            "feature_type": "runway_threshold",
+            "latitude_source": "13°12′25.79″N",
+            "longitude_source": "077°41′09.86″E",
+            "elevation": {"source_text": "3003", "value": 3003, "unit": "FT", "vertical_datum": null},
+            "tdz_elevation": {"source_text": "3003", "value": 3003, "unit": "FT", "vertical_datum": null},
+            "geometry": null
+          }
+        },
+        {
+          "feature_id": "runway-direction:VOBL:27R",
+          "feature_type": "runway_direction",
+          "designator": "27R",
+          "displayed_direction": {"source_text": "272°", "value": 272, "unit": "DEG"},
+          "threshold": {
+            "feature_id": "threshold:VOBL:27R",
+            "feature_type": "runway_threshold",
+            "latitude_source": "13°12′24.65″N",
+            "longitude_source": "077°43′22.69″E",
+            "elevation": {"source_text": "2919", "value": 2919, "unit": "FT", "vertical_datum": null},
+            "tdz_elevation": {"source_text": "2937", "value": 2937, "unit": "FT", "vertical_datum": null},
+            "geometry": null
+          }
+        }
+      ]
+    },
+    {
+      "feature_id": "runway:VOBL:09R-27L",
+      "feature_type": "runway",
+      "status": "PROVISIONAL_OBSERVATION",
+      "designator_pair": "09R/27L",
+      "length": {"source_text": "4000 M", "value": 4000, "unit": "M"},
+      "width": {"source_text": "45 M", "value": 45, "unit": "M"},
+      "geometry": null,
+      "evidence": {"page": 1, "region_hint": "south runway label and runway table", "bbox": null},
+      "directions": [
+        {
+          "feature_id": "runway-direction:VOBL:09R",
+          "feature_type": "runway_direction",
+          "designator": "09R",
+          "displayed_direction": {"source_text": "092°", "value": 92, "unit": "DEG"},
+          "threshold": {
+            "feature_id": "threshold:VOBL:09R",
+            "feature_type": "runway_threshold",
+            "latitude_source": "13°11′23.04″N",
+            "longitude_source": "077°41′23.92″E",
+            "elevation": {"source_text": "2973", "value": 2973, "unit": "FT", "vertical_datum": null},
+            "tdz_elevation": {"source_text": "2973", "value": 2973, "unit": "FT", "vertical_datum": null},
+            "geometry": null
+          }
+        },
+        {
+          "feature_id": "runway-direction:VOBL:27L",
+          "feature_type": "runway_direction",
+          "designator": "27L",
+          "displayed_direction": {"source_text": "272°", "value": 272, "unit": "DEG"},
+          "threshold": {
+            "feature_id": "threshold:VOBL:27L",
+            "feature_type": "runway_threshold",
+            "latitude_source": "13°11′21.89″N",
+            "longitude_source": "077°43′36.74″E",
+            "elevation": {"source_text": "2964", "value": 2964, "unit": "FT", "vertical_datum": null},
+            "tdz_elevation": {"source_text": "2965", "value": 2965, "unit": "FT", "vertical_datum": null},
+            "geometry": null
+          }
+        }
+      ]
+    }
+  ],
+  "taxiways": {
+    "feature_type": "taxiway_collection",
+    "features": [],
+    "presence_observed": true,
+    "empty_array_semantics": "NOT_EXTRACTED_NOT_ABSENT",
+    "completeness_status": "BLOCKED_SOURCE_BYTES_REQUIRED",
+    "required_next_evidence": "Original vector PDF or hashable full-resolution render with page coordinates",
+    "review_status": "NOT_STARTED"
+  },
+  "runway_holding_positions": {
+    "feature_type": "runway_holding_position_collection",
+    "features": [],
+    "presence_observed": true,
+    "empty_array_semantics": "NOT_EXTRACTED_NOT_ABSENT",
+    "completeness_status": "BLOCKED_SOURCE_BYTES_REQUIRED",
+    "required_next_evidence": "Original vector PDF or hashable full-resolution render with page coordinates and taxiway association evidence",
+    "review_status": "NOT_STARTED"
+  },
+  "review": {
+    "reviewer_a": null,
+    "reviewer_b": null,
+    "adjudicator": null,
+    "status": "UNREVIEWED",
+    "gold_eligible": false
+  }
+}

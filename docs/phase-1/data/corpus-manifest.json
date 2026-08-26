@@ -1,0 +1,39 @@
+{
+  "corpus_version": "0.1.0-bootstrap",
+  "schema_version": "1.0.0",
+  "status": "PROVISIONAL_BOOTSTRAP_NOT_GOLD",
+  "operational_use": false,
+  "created_at": "2026-08-19",
+  "items": [
+    {
+      "dataset_id": "vobl-adc-2025-11-27-bootstrap-v0.1.0",
+      "airport_icao": "VOBL",
+      "source_identity": "AAI/BIAL + VOBL + ADC + AD 2 VOBL 1-101 + 2025-11-27 + SHA256_PENDING",
+      "annotation_file": "vobl-bootstrap-observations.json",
+      "split": "development_bootstrap",
+      "gold_eligible": false,
+      "blocking_reasons": [
+        "Original source bytes and SHA-256 unavailable",
+        "Source rights unconfirmed",
+        "Two independent reviewers and adjudicator not assigned",
+        "Taxiway and holding-position inventories incomplete"
+      ]
+    }
+  ],
+  "included_feature_classes": [
+    "airport",
+    "aerodrome_reference_point",
+    "aerodrome_elevation",
+    "runway",
+    "runway_direction",
+    "runway_threshold",
+    "taxiway_collection",
+    "runway_holding_position_collection"
+  ],
+  "excluded_from_gold_metrics": [
+    "taxiway identifiers and geometry",
+    "runway holding-position identities, associations, and geometry",
+    "all page-space evidence geometry",
+    "all georeferenced runway/taxiway/holding geometry"
+  ]
+}

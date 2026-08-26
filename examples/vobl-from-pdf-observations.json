@@ -1,0 +1,611 @@
+{
+  "schema_version": "1.0.0",
+  "dataset_id": "vobl-adc-2025-11-27-native-text-v0.1.0",
+  "dataset_status": "PROVISIONAL_BOOTSTRAP_NOT_GOLD",
+  "operational_use": false,
+  "airport_icao": "VOBL",
+  "source": {
+    "source_id": "AAI-AIP-VOBL-ADC-NATIVE-TEXT",
+    "chart_identifier": "AD 2 VOBL 1-101",
+    "chart_type": "Aerodrome Chart",
+    "displayed_date": "2025-11-27",
+    "amendment": "AMDT 06/2025",
+    "publisher_context": [
+      "AIP India",
+      "AAI",
+      "BIAL"
+    ],
+    "extraction_method": "native PDF text (PyMuPDF words)",
+    "original_bytes_available": false,
+    "sha256": null,
+    "rights_status": "UNCONFIRMED_PERMISSION_REQUIRED"
+  },
+  "airport": {
+    "feature_id": "airport:VOBL",
+    "feature_type": "airport",
+    "status": "EXTRACTED_FROM_NATIVE_TEXT",
+    "icao": {
+      "source_text": "VOBL",
+      "value": "VOBL"
+    },
+    "name": {
+      "source_text": "KEMPEGOWDA INTERNATIONAL AIRPORT BENGALURU",
+      "value": "Kempegowda International Airport Bengaluru"
+    },
+    "arp": {
+      "feature_id": "arp:VOBL",
+      "feature_type": "aerodrome_reference_point",
+      "latitude_source": "13° 11' 56\" N",
+      "longitude_source": "077° 42' 20\" E",
+      "normalized_crs_target": "OGC:CRS84",
+      "axis_order_target": "longitude_latitude"
+    },
+    "elevation": {
+      "feature_id": "elevation:VOBL",
+      "feature_type": "aerodrome_elevation",
+      "claims": [
+        {
+          "claim_id": "claim:elev:chart",
+          "source_id": "AAI-AIP-VOBL-ADC-NATIVE-TEXT",
+          "source_text": "AD ELEVATION. 3003 ft",
+          "value": 3003,
+          "unit": "FT",
+          "vertical_datum": null,
+          "effective_alignment": "CHART_DISPLAYED_DATE_KNOWN"
+        },
+        {
+          "claim_id": "claim:elev:indexed-eaip",
+          "source_id": "AAI-EAIP-VOBL-AD2.1-TEXT-INDEXED",
+          "source_text": "3001 FT",
+          "value": 3001,
+          "unit": "FT",
+          "vertical_datum": null,
+          "effective_alignment": "UNKNOWN_EDITION"
+        }
+      ],
+      "conflict_status": "OPEN_EFFECTIVE_EDITION_RECONCILIATION_REQUIRED",
+      "selected_value": null
+    }
+  },
+  "runways": [
+    {
+      "feature_id": "runway:VOBL:09L-27R",
+      "feature_type": "runway",
+      "status": "EXTRACTED_FROM_NATIVE_TEXT",
+      "designator_pair": "09L/27R",
+      "length": {
+        "source_text": "4000 M",
+        "value": 4000,
+        "unit": "M"
+      },
+      "width": {
+        "source_text": "45 M",
+        "value": 45,
+        "unit": "M"
+      },
+      "directions": [
+        {
+          "feature_id": "runway-direction:VOBL:09L",
+          "designator": "09L",
+          "displayed_direction": {
+            "source_text": "092°",
+            "value": 92,
+            "unit": "DEG"
+          },
+          "threshold": {
+            "feature_id": "threshold:VOBL:09L",
+            "feature_type": "runway_threshold",
+            "latitude_source": "13°12'25.79\" N",
+            "longitude_source": "077°41'09.86\" E",
+            "elevation": {
+              "source_text": "3003",
+              "value": 3003,
+              "unit": "FT"
+            },
+            "tdz_elevation": {
+              "source_text": "3003",
+              "value": 3003,
+              "unit": "FT"
+            }
+          }
+        },
+        {
+          "feature_id": "runway-direction:VOBL:27R",
+          "designator": "27R",
+          "displayed_direction": {
+            "source_text": "272°",
+            "value": 272,
+            "unit": "DEG"
+          },
+          "threshold": {
+            "feature_id": "threshold:VOBL:27R",
+            "feature_type": "runway_threshold",
+            "latitude_source": "13°12'24.65\" N",
+            "longitude_source": "077°43'22.69\" E",
+            "elevation": {
+              "source_text": "2919",
+              "value": 2919,
+              "unit": "FT"
+            },
+            "tdz_elevation": {
+              "source_text": "2937",
+              "value": 2937,
+              "unit": "FT"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "feature_id": "runway:VOBL:09R-27L",
+      "feature_type": "runway",
+      "status": "EXTRACTED_FROM_NATIVE_TEXT",
+      "designator_pair": "09R/27L",
+      "length": {
+        "source_text": "4000 M",
+        "value": 4000,
+        "unit": "M"
+      },
+      "width": {
+        "source_text": "45 M",
+        "value": 45,
+        "unit": "M"
+      },
+      "directions": [
+        {
+          "feature_id": "runway-direction:VOBL:09R",
+          "designator": "09R",
+          "displayed_direction": {
+            "source_text": "092°",
+            "value": 92,
+            "unit": "DEG"
+          },
+          "threshold": {
+            "feature_id": "threshold:VOBL:09R",
+            "feature_type": "runway_threshold",
+            "latitude_source": "13°11'23.04\" N",
+            "longitude_source": "077°41'23.92\" E",
+            "elevation": {
+              "source_text": "2973",
+              "value": 2973,
+              "unit": "FT"
+            },
+            "tdz_elevation": {
+              "source_text": "2973",
+              "value": 2973,
+              "unit": "FT"
+            }
+          }
+        },
+        {
+          "feature_id": "runway-direction:VOBL:27L",
+          "designator": "27L",
+          "displayed_direction": {
+            "source_text": "272°",
+            "value": 272,
+            "unit": "DEG"
+          },
+          "threshold": {
+            "feature_id": "threshold:VOBL:27L",
+            "feature_type": "runway_threshold",
+            "latitude_source": "13°11'21.89\" N",
+            "longitude_source": "077°43'36.74\" E",
+            "elevation": {
+              "source_text": "2964",
+              "value": 2964,
+              "unit": "FT"
+            },
+            "tdz_elevation": {
+              "source_text": "2965",
+              "value": 2965,
+              "unit": "FT"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "taxiways": {
+    "feature_type": "taxiway_collection",
+    "features": [
+      {
+        "feature_id": "taxiway:A",
+        "designator": "A",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:A1",
+        "designator": "A1",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:A2",
+        "designator": "A2",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:A4",
+        "designator": "A4",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:A5",
+        "designator": "A5",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:A6",
+        "designator": "A6",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:A7",
+        "designator": "A7",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:A8",
+        "designator": "A8",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:A9",
+        "designator": "A9",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:A10",
+        "designator": "A10",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:A11",
+        "designator": "A11",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:B",
+        "designator": "B",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:B1",
+        "designator": "B1",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:B2",
+        "designator": "B2",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:B3",
+        "designator": "B3",
+        "width": {
+          "value": 15,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:B4",
+        "designator": "B4",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:B6",
+        "designator": "B6",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:D",
+        "designator": "D",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:F",
+        "designator": "F",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:G",
+        "designator": "G",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:G1",
+        "designator": "G1",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:G4",
+        "designator": "G4",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:H",
+        "designator": "H",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:H1",
+        "designator": "H1",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:H2",
+        "designator": "H2",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:H3",
+        "designator": "H3",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:H4",
+        "designator": "H4",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:H5",
+        "designator": "H5",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:H6",
+        "designator": "H6",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:H7",
+        "designator": "H7",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:H8",
+        "designator": "H8",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:H9",
+        "designator": "H9",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:H10",
+        "designator": "H10",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:K",
+        "designator": "K",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:M",
+        "designator": "M",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:N",
+        "designator": "N",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:N1",
+        "designator": "N1",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:N2",
+        "designator": "N2",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:P",
+        "designator": "P",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:P1",
+        "designator": "P1",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:Q",
+        "designator": "Q",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:R",
+        "designator": "R",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      },
+      {
+        "feature_id": "taxiway:S",
+        "designator": "S",
+        "width": {
+          "value": 23,
+          "unit": "M"
+        },
+        "source": "runway-pavement legend (native text)"
+      }
+    ],
+    "presence_observed": true,
+    "empty_array_semantics": "POPULATED",
+    "completeness_status": "EXTRACTED_FROM_NATIVE_TEXT_PENDING_REVIEW"
+  },
+  "runway_holding_positions": {
+    "feature_type": "runway_holding_position_collection",
+    "features": [],
+    "presence_observed": true,
+    "empty_array_semantics": "NOT_EXTRACTED_NOT_ABSENT",
+    "completeness_status": "BLOCKED_SOURCE_BYTES_REQUIRED",
+    "required_next_evidence": "Marking-line geometry layer or a dedicated holding-position table"
+  }
+}

@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "airport-ocr"
+version = "0.1.0"
+description = "Non-operational proof of concept for normalizing and searching airport-chart observations."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+authors = [{ name = "Airport-OCR contributors" }]
+keywords = ["aviation", "aerodrome", "chart", "geojson", "extraction", "ocr"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: GIS",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+airport-ocr = "airport_ocr.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/yashpatle23/Airport-OCR"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

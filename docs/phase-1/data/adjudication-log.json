@@ -1,0 +1,26 @@
+{
+  "log_version": "1.0",
+  "dataset_id": "vobl-adc-2025-11-27-bootstrap-v0.1.0",
+  "decisions": [],
+  "open_items": [
+    {
+      "item_id": "OPEN-001",
+      "field": "airport.elevation",
+      "issue": "Attached chart displays 3003 ft while separately indexed AAI eAIP text reports 3001 FT; effective editions have not been aligned.",
+      "status": "OPEN_EFFECTIVE_EDITION_RECONCILIATION_REQUIRED"
+    },
+    {
+      "item_id": "OPEN-002",
+      "field": "taxiways",
+      "issue": "Complete inventory and source geometry unavailable without original source bytes.",
+      "status": "BLOCKED_SOURCE_BYTES_REQUIRED"
+    },
+    {
+      "item_id": "OPEN-003",
+      "field": "runway_holding_positions",
+      "issue": "Complete inventory, taxiway/runway association, and marking-line geometry unavailable without original source bytes.",
+      "status": "BLOCKED_SOURCE_BYTES_REQUIRED"
+    }
+  ],
+  "reviewers": {"reviewer_a": null, "reviewer_b": null, "adjudicator": null}
+}
