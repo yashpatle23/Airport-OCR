@@ -2,6 +2,10 @@
 
 Turn aerodrome-chart observations into validated, normalized, searchable data — safely.
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yashpatle23/Airport-OCR/blob/feat/airport-ocr-poc/notebooks/Airport_OCR_Colab.ipynb)
+
+Run the whole pipeline in your browser — no local setup — with the [Colab notebook](notebooks/Airport_OCR_Colab.ipynb): upload the VOBL PDF (or a PyMuPDF words dump) and get intake → native-text extraction → normalize → validate → JSON/GeoJSON → map/search.
+
 > **Non-operational.** This project produces research data only. Nothing here is
 > authoritative aeronautical data and it must never be used for navigation or
 > operational decisions. Extracted values remain **provisional** until the
