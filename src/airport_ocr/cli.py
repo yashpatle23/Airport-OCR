@@ -85,6 +85,32 @@ def _cmd_process(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_extract_pdf_words(args: argparse.Namespace) -> int:
+    from .pdf_words import extract_from_words
+
+    input_path = Path(args.input)
+    try:
+        dump = _read_json(input_path)
+        document = extract_from_words(dump, dataset_id=args.dataset_id)
+    except (ValueError, KeyError) as exc:
+        print(f"extract-pdf-words error: {exc}", file=sys.stderr)
+        return 2
+
+    if args.output:
+        _write_json(Path(args.output), document)
+
+    summary = {
+        "dataset_id": document["dataset_id"],
+        "airport_icao": document["airport_icao"],
+        "runway_pairs": [r["designator_pair"] for r in document["runways"]],
+        "taxiway_count": len(document["taxiways"]["features"]),
+        "runway_holding_positions": document["runway_holding_positions"]["completeness_status"],
+        "output": args.output,
+    }
+    print(json.dumps(summary, indent=2))
+    return 0
+
+
 def _cmd_serve(args: argparse.Namespace) -> int:
     from .pipeline import normalize as _normalize
     from .webapp import serve
@@ -160,6 +186,14 @@ def build_parser() -> argparse.ArgumentParser:
     search_parser.add_argument("--designator", default=None)
     search_parser.add_argument("--bbox", default=None, help="min_lon,min_lat,max_lon,max_lat")
     search_parser.set_defaults(func=_cmd_search)
+
+    extract_parser = sub.add_parser(
+        "extract-pdf-words", help="Extract observations from a PyMuPDF words dump (native text)."
+    )
+    extract_parser.add_argument("input", help="Path to a PyMuPDF words dump JSON file.")
+    extract_parser.add_argument("--output", default=None, help="Optional path to write the observation JSON.")
+    extract_parser.add_argument("--dataset-id", default="vobl-adc-native-text", help="Dataset identifier.")
+    extract_parser.set_defaults(func=_cmd_extract_pdf_words)
 
     serve_parser = sub.add_parser("serve", help="Run the non-operational web app (API + UI).")
     serve_parser.add_argument("input", help="Path to a source-preserving observation JSON file.")

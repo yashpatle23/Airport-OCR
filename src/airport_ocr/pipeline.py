@@ -13,6 +13,7 @@ semantics, and conflicting claims are preserved without selection.
 from __future__ import annotations
 
 import math
+import re
 from typing import Any, Dict, List, Tuple
 
 from .coordinates import (
@@ -26,6 +27,7 @@ from .validation import Validation
 
 _EXPECTED_DESIGNATORS = {"09L", "27R", "09R", "27L"}
 _EARTH_RADIUS_M = 6371008.8
+_TAXIWAY_DESIGNATOR_RE = re.compile(r"^[A-Z]\d{0,2}$")
 
 
 class PipelineError(Exception):
@@ -71,6 +73,49 @@ def _blocked_collection(node: Dict[str, Any], name: str, validation: Validation)
     )
     return {
         "features": [],
+        "presence_observed": True,
+        "completeness_status": node.get("completeness_status"),
+        "empty_array_semantics": node.get("empty_array_semantics"),
+    }
+
+
+def _taxiway_collection(node: Dict[str, Any], validation: Validation) -> Dict[str, Any]:
+    """Validate a populated taxiway inventory, or fall back to blocked semantics."""
+    features = node.get("features") or []
+    if not features:
+        return _blocked_collection(node, "taxiways", validation)
+
+    designators = [f.get("designator") for f in features]
+    valid = all(bool(d) and bool(_TAXIWAY_DESIGNATOR_RE.match(d)) for d in designators)
+    unique = len(set(designators)) == len(designators)
+    validation.require(
+        valid and unique,
+        "taxiways.designators_valid",
+        f"All {len(features)} taxiway designators are valid and unique.",
+        "Taxiway designators are invalid or duplicated.",
+    )
+    widths_ok = all(
+        (f.get("width") or {}).get("unit") == "M" and (f.get("width") or {}).get("value", 0) > 0
+        for f in features
+    )
+    validation.require(
+        widths_ok,
+        "taxiways.widths",
+        "All taxiway widths are positive values in metres.",
+        "One or more taxiway widths are missing or invalid.",
+    )
+    normalized = [
+        {
+            "feature_id": f.get("feature_id"),
+            "designator": f.get("designator"),
+            "width": f.get("width"),
+            "source": f.get("source"),
+        }
+        for f in features
+    ]
+    return {
+        "features": normalized,
+        "count": len(normalized),
         "presence_observed": True,
         "completeness_status": node.get("completeness_status"),
         "empty_array_semantics": node.get("empty_array_semantics"),
@@ -316,7 +361,7 @@ def normalize(document: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any],
         "Direction inventory is missing, duplicated, or unexpected.",
     )
 
-    taxiways = _blocked_collection(document["taxiways"], "taxiways", validation)
+    taxiways = _taxiway_collection(document["taxiways"], validation)
     holds = _blocked_collection(document["runway_holding_positions"], "runway_holding_positions", validation)
 
     normalized = {
@@ -360,6 +405,7 @@ def normalize(document: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any],
             "operational_use": False,
             "crs_semantics": "RFC 7946 longitude/latitude (OGC:CRS84)",
             "taxiway_completeness": taxiways["completeness_status"],
+            "taxiway_inventory": [f["designator"] for f in taxiways.get("features", [])],
             "runway_holding_position_completeness": holds["completeness_status"],
             "warning": "Runway lines are threshold connectors, not surveyed runway extents.",
         },

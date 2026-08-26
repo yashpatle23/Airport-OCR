@@ -38,6 +38,9 @@ Aerodrome Chart `AD 2 VOBL 1-101`.
   view, elevation-conflict and blocked-collection banners, feature search, and a
   self-contained SVG map). No third-party runtime dependencies and no external
   assets or network calls.
+- **Native PDF text extraction** — turn a PyMuPDF `page.get_text("words")` dump
+  into observations: airport identity, ARP, elevation, the runway table, and the
+  full **taxiway inventory** (with widths) parsed from the runway-pavement legend.
 
 ## What is intentionally NOT done
 
@@ -74,9 +77,37 @@ airport-ocr search out/features.geojson --feature-type runway_threshold
 airport-ocr search out/features.geojson --designator 09L
 airport-ocr search out/features.geojson --bbox 77.70,13.19,77.71,13.20
 
+# Extract observations from a native PDF word dump (PyMuPDF words)
+airport-ocr extract-pdf-words examples/vobl-words-sample.json --output out/vobl.json
+airport-ocr process out/vobl.json --output-dir out
+
 # Run the web application (API + browser UI) and open http://127.0.0.1:8000
-airport-ocr serve examples/vobl-bootstrap-observations.json --port 8000
+airport-ocr serve examples/vobl-from-pdf-observations.json --port 8000
 ```
+
+### Native PDF text extraction
+
+Produce the words dump on a machine that has PyMuPDF and the source PDF:
+
+```python
+import fitz, json           # PyMuPDF
+doc = fitz.open("VOBL-ADC.pdf")
+pages = [{"page": i, "size": [p.rect.width, p.rect.height], "words": p.get_text("words")}
+         for i, p in enumerate(doc)]
+json.dump(pages, open("vobl_words.json", "w"))
+```
+
+Then extract and validate locally (no PDF library needed downstream):
+
+```bash
+airport-ocr extract-pdf-words vobl_words.json --output out/vobl.json
+airport-ocr process out/vobl.json --output-dir out
+```
+
+`extract-pdf-words` recovers the airport header, the four runway threshold rows,
+and the **43 VOBL taxiways** (B3 = 15 m, the rest 23 m) from the legend. Runway
+holding positions stay `BLOCKED_SOURCE_BYTES_REQUIRED` because distinct
+identifiers/associations need the marking-geometry layer, not the word stream.
 
 ### Web application
 
@@ -114,7 +145,7 @@ You can also run it as a module: `python -m airport_ocr ...`.
 ## Project layout
 
 ```
-src/airport_ocr/   intake, coordinates, validation, pipeline, search, webapp, webui, CLI
+src/airport_ocr/   intake, coordinates, pdf_words, validation, pipeline, search, webapp, webui, CLI
 tests/             behavioral tests (pytest)
 examples/          provisional VOBL observation fixture
 docs/research/     enterprise architecture & solution research

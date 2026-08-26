@@ -115,11 +115,11 @@
           "feature_id": "runway-direction:VOBL:09L",
           "feature_type": "runway_direction",
           "designator": "09L",
-          "displayed_direction": {"source_text": "092°4′", "value": 92.0666667, "unit": "DEG"},
+          "displayed_direction": {"source_text": "092°", "value": 92, "unit": "DEG"},
           "threshold": {
             "feature_id": "threshold:VOBL:09L",
             "feature_type": "runway_threshold",
-            "latitude_source": "13°12′25.26″N",
+            "latitude_source": "13°12′25.79″N",
             "longitude_source": "077°41′09.86″E",
             "elevation": {"source_text": "3003", "value": 3003, "unit": "FT", "vertical_datum": null},
             "tdz_elevation": {"source_text": "3003", "value": 3003, "unit": "FT", "vertical_datum": null},
@@ -130,7 +130,7 @@
           "feature_id": "runway-direction:VOBL:27R",
           "feature_type": "runway_direction",
           "designator": "27R",
-          "displayed_direction": {"source_text": "272°4′", "value": 272.0666667, "unit": "DEG"},
+          "displayed_direction": {"source_text": "272°", "value": 272, "unit": "DEG"},
           "threshold": {
             "feature_id": "threshold:VOBL:27R",
             "feature_type": "runway_threshold",
@@ -157,7 +157,7 @@
           "feature_id": "runway-direction:VOBL:09R",
           "feature_type": "runway_direction",
           "designator": "09R",
-          "displayed_direction": {"source_text": "092°4′", "value": 92.0666667, "unit": "DEG"},
+          "displayed_direction": {"source_text": "092°", "value": 92, "unit": "DEG"},
           "threshold": {
             "feature_id": "threshold:VOBL:09R",
             "feature_type": "runway_threshold",
@@ -172,12 +172,12 @@
           "feature_id": "runway-direction:VOBL:27L",
           "feature_type": "runway_direction",
           "designator": "27L",
-          "displayed_direction": {"source_text": "272°4′", "value": 272.0666667, "unit": "DEG"},
+          "displayed_direction": {"source_text": "272°", "value": 272, "unit": "DEG"},
           "threshold": {
             "feature_id": "threshold:VOBL:27L",
             "feature_type": "runway_threshold",
-            "latitude_source": "13°11′21.92″N",
-            "longitude_source": "077°43′26.34″E",
+            "latitude_source": "13°11′21.89″N",
+            "longitude_source": "077°43′36.74″E",
             "elevation": {"source_text": "2964", "value": 2964, "unit": "FT", "vertical_datum": null},
             "tdz_elevation": {"source_text": "2965", "value": 2965, "unit": "FT", "vertical_datum": null},
             "geometry": null
