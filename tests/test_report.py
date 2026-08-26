@@ -71,3 +71,40 @@ def test_ai_summary_prompt_is_safe(normalized_report):
     assert "Do not invent" in prompt["system"]
     assert "untrusted" in prompt["system"]
     assert "VOBL" in prompt["user"]
+
+
+
+def test_render_html_deterministic(normalized_report):
+    from airport_ocr.report import render_html
+
+    normalized, report = normalized_report
+    pkg = build_package(normalized, report)
+    html = render_html(pkg)
+
+    assert html.lstrip().startswith("<div")
+    assert "VOBL" in html
+    assert "Kempegowda International Airport Bengaluru" in html
+    assert "NON-OPERATIONAL" in html
+    assert "PASS_WITH_EXPECTED_BLOCKERS" in html
+    assert "Runways" in html and "09L" in html
+    assert "Taxiways (43)" in html
+    assert "unresolved conflict" in html          # 3003 vs 3001
+    assert "Summary (deterministic)" in html      # no AI text provided
+    # No external assets / scripts.
+    assert "http://" not in html and "https://" not in html
+    assert "<script" not in html.lower()
+
+
+def test_render_html_with_ai_text_is_escaped(normalized_report):
+    from airport_ocr.report import render_html
+
+    normalized, report = normalized_report
+    pkg = build_package(normalized, report)
+    injected = "Summary line one.\n\n<script>alert('x')</script> & <b>bold</b>"
+    html = render_html(pkg, ai_text=injected)
+
+    assert "AI summary (paraphrase" in html
+    # Untrusted AI/chart text must be escaped, not rendered as markup.
+    assert "<script>alert" not in html
+    assert "&lt;script&gt;" in html
+    assert "&amp;" in html

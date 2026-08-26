@@ -221,3 +221,186 @@ def ai_summary_prompt(package: Dict[str, Any]) -> Dict[str, str]:
         "non-operational caveat.\n\nJSON:\n" + _json.dumps(package, ensure_ascii=False)
     )
     return {"system": system, "user": user}
+
+
+
+def _esc(value: Any) -> str:
+    """HTML-escape any value (chart-derived text is treated as untrusted)."""
+    import html
+
+    return html.escape("" if value is None else str(value))
+
+
+def render_html(package: Dict[str, Any], ai_text: Optional[str] = None) -> str:
+    """Render the structured package as a self-contained styled HTML report.
+
+    No external assets or scripts. Suitable for ``IPython.display.HTML`` in a
+    notebook or for writing to a standalone ``.html`` file. If ``ai_text`` is
+    provided it is shown as a paraphrase panel; otherwise only the structured
+    facts and the deterministic summary are shown. Non-operational throughout.
+    """
+    a = package["airport"]
+    ce = a["coordinates_elevation"]
+    arp = ce["arp"]
+    elev = ce["elevation"]
+    val = package.get("validation", {})
+    src = package.get("source") or {}
+    hp = package["runway_holding_positions"]
+    tx = package["taxiways"]
+
+    lon, lat = (arp["coordinates_lonlat"] + [None, None])[:2]
+
+    val_status = val.get("status", "n/a")
+    val_ok = val.get("failure_count", 1) == 0
+    val_color = "#0f766e" if val_ok else "#b91c1c"
+
+    # Elevation tile (highlight an unresolved conflict).
+    if len(elev["claims"]) > 1 and elev["selected_value"] is None:
+        elev_vals = " / ".join(f"{_esc(c['value'])} {_esc(c['unit'])}" for c in elev["claims"])
+        elev_html = (
+            f'<div class="v">{elev_vals}</div>'
+            f'<div class="warn">unresolved conflict — not auto-resolved</div>'
+        )
+    elif elev["claims"]:
+        c = elev["claims"][0]
+        elev_html = f'<div class="v">{_esc(c["value"])} {_esc(c["unit"])}</div>'
+    else:
+        elev_html = '<div class="v">n/a</div>'
+
+    # Runway rows.
+    rows = []
+    for r in package["runways"]:
+        length = _esc(r["declared_length"]["value"])
+        width = _esc(r["declared_width"]["value"])
+        unit = _esc(r["declared_width"]["unit"])
+        for i, d in enumerate(r["directions"]):
+            t = d["threshold"]
+            rlon, rlat = (t["coordinates_lonlat"] + [None, None])[:2]
+            pair_cell = (
+                f'<td rowspan="2"><b>{_esc(r["designator_pair"])}</b><br>'
+                f'<span class="dim">{length}×{width} {unit}</span></td>'
+                if i == 0 else ""
+            )
+            rows.append(
+                "<tr>" + pair_cell +
+                f"<td>{_esc(d['designator'])}</td>"
+                f"<td class='num'>{_esc(round(rlat, 6)) if rlat is not None else 'n/a'}</td>"
+                f"<td class='num'>{_esc(round(rlon, 6)) if rlon is not None else 'n/a'}</td>"
+                f"<td class='num'>{_esc(t['elevation']['value'])}</td>"
+                f"<td class='num'>{_esc(t['tdz_elevation']['value'])}</td>"
+                "</tr>"
+            )
+    runway_rows = "".join(rows)
+
+    # Taxiway chips.
+    chips = "".join(f'<span class="chip">{_esc(d)}</span>' for d in tx.get("designators", []))
+
+    # Holding candidates tile.
+    hold_count = hp.get("candidate_count", 0)
+    hold_html = (
+        f'<div class="v">{hold_count} candidate(s)</div>'
+        f'<div class="warn">{_esc(hp.get("candidate_completeness_status") or hp.get("accepted_completeness_status"))} — review required</div>'
+    )
+
+    # AI / deterministic narrative.
+    narrative = ai_text if ai_text else summarize(package)
+    paras = "".join(
+        f"<p>{_esc(block).strip()}</p>"
+        for block in narrative.replace("\r", "").split("\n\n")
+        if block.strip()
+    )
+    narrative_label = "AI summary (paraphrase — non-authoritative)" if ai_text else "Summary (deterministic)"
+
+    source_line = ""
+    if src.get("chart_identifier"):
+        source_line = (
+            f'<div class="src">Source chart: {_esc(src.get("chart_identifier"))} · '
+            f'{_esc(src.get("displayed_date", "date n/a"))} · {_esc(src.get("amendment", "amdt n/a"))}</div>'
+        )
+
+    return f"""
+<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:920px;
+     border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+  <style>
+    .aoc-h {{background:#0f172a;color:#e2e8f0;padding:18px 22px}}
+    .aoc-h .icao {{font-size:28px;font-weight:700;letter-spacing:.02em}}
+    .aoc-h .name {{color:#94a3b8;font-size:14px;margin-top:2px}}
+    .aoc-badges {{margin-top:10px}}
+    .aoc-badges span {{display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;
+        border-radius:999px;margin-right:6px}}
+    .b-op {{background:#78350f;color:#fde68a}}
+    .b-val {{background:{val_color};color:#ecfeff}}
+    .src {{color:#94a3b8;font-size:12px;margin-top:8px}}
+    .aoc-grid {{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#e2e8f0}}
+    .aoc-grid .tile {{background:#fff;padding:14px 16px}}
+    .aoc-grid .k {{color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:.06em}}
+    .aoc-grid .v {{font-size:18px;font-weight:600;color:#0f172a;margin-top:4px;font-variant-numeric:tabular-nums}}
+    .aoc-grid .warn {{color:#b45309;font-size:11px;margin-top:3px}}
+    .aoc-sec {{padding:16px 22px;border-top:1px solid #e2e8f0}}
+    .aoc-sec h3 {{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#64748b}}
+    table {{width:100%;border-collapse:collapse;font-size:13px}}
+    th,td {{text-align:left;padding:6px 8px;border-bottom:1px solid #eef2f7}}
+    th {{color:#64748b;font-weight:600}}
+    td.num,th.num {{text-align:right;font-variant-numeric:tabular-nums}}
+    .dim {{color:#94a3b8}}
+    .chip {{display:inline-block;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;
+        padding:2px 7px;margin:2px;font-size:12px;font-variant-numeric:tabular-nums}}
+    .aoc-ai {{background:#f8fafc}}
+    .aoc-ai p {{margin:0 0 10px;line-height:1.55;color:#1e293b;font-size:13.5px}}
+    .aoc-foot {{padding:12px 22px;background:#fff7ed;color:#9a3412;font-size:12px;border-top:1px solid #fed7aa}}
+  </style>
+
+  <div class="aoc-h">
+    <div class="icao">{_esc(a['icao'])}</div>
+    <div class="name">{_esc(a['name'])}</div>
+    <div class="aoc-badges">
+      <span class="b-op">NON-OPERATIONAL · research only</span>
+      <span class="b-val">{_esc(val_status)} · {_esc(val.get('failure_count', 0))} failures</span>
+    </div>
+    {source_line}
+  </div>
+
+  <div class="aoc-grid">
+    <div class="tile"><div class="k">ARP (lon, lat)</div>
+      <div class="v" style="font-size:14px">{_esc(round(lon,6)) if lon is not None else 'n/a'}, {_esc(round(lat,6)) if lat is not None else 'n/a'}</div>
+      <div class="warn" style="color:#64748b">{_esc(arp.get('crs'))}</div></div>
+    <div class="tile"><div class="k">Aerodrome elevation</div>{elev_html}</div>
+    <div class="tile"><div class="k">Runways</div>
+      <div class="v">{len(package['runways'])} pairs</div>
+      <div class="warn" style="color:#64748b">{_esc(', '.join(r['designator_pair'] for r in package['runways']))}</div></div>
+    <div class="tile"><div class="k">Taxiways</div>
+      <div class="v">{_esc(tx.get('count', 0))}</div>
+      <div class="warn" style="color:#64748b">from legend</div></div>
+  </div>
+
+  <div class="aoc-sec">
+    <h3>Runways</h3>
+    <table>
+      <tr><th>Pair</th><th>RWY</th><th class="num">THR lat</th><th class="num">THR lon</th>
+          <th class="num">THR ft</th><th class="num">TDZ ft</th></tr>
+      {runway_rows}
+    </table>
+  </div>
+
+  <div class="aoc-sec">
+    <h3>Taxiways ({_esc(tx.get('count', 0))})</h3>
+    <div>{chips}</div>
+  </div>
+
+  <div class="aoc-sec">
+    <h3>Runway holding positions</h3>
+    {hold_html}
+  </div>
+
+  <div class="aoc-sec aoc-ai">
+    <h3>{_esc(narrative_label)}</h3>
+    {paras}
+  </div>
+
+  <div class="aoc-foot">
+    Non-operational research artifact. Holding positions are unverified candidates.
+    Not authoritative aeronautical data; do not use for navigation. Source rights and a
+    named reviewer are required before any authoritative use.
+  </div>
+</div>
+""".strip()
