@@ -34,6 +34,10 @@ Aerodrome Chart `AD 2 VOBL 1-101`.
   units, elevation-conflict preservation, and completeness semantics.
 - **Exports** — normalized JSON and an RFC 7946 GeoJSON `FeatureCollection`.
 - **Search** — filter the GeoJSON projection by feature type, airport, designator, and bbox.
+- **Web application** — a stdlib HTTP API and an offline browser UI (structured
+  view, elevation-conflict and blocked-collection banners, feature search, and a
+  self-contained SVG map). No third-party runtime dependencies and no external
+  assets or network calls.
 
 ## What is intentionally NOT done
 
@@ -69,6 +73,36 @@ airport-ocr process examples/vobl-bootstrap-observations.json --output-dir out
 airport-ocr search out/features.geojson --feature-type runway_threshold
 airport-ocr search out/features.geojson --designator 09L
 airport-ocr search out/features.geojson --bbox 77.70,13.19,77.71,13.20
+
+# Run the web application (API + browser UI) and open http://127.0.0.1:8000
+airport-ocr serve examples/vobl-bootstrap-observations.json --port 8000
+```
+
+### Web application
+
+`airport-ocr serve <observations.json>` starts a local, non-operational web app.
+
+UI (`GET /`): airport identity and ARP, the preserved `3003 ft` vs `3001 ft`
+elevation conflict, blocked taxiway / runway-holding collections, a runway
+table, a searchable feature list, an inline SVG map of the ARP and runway
+thresholds, and the full validation report.
+
+JSON API:
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/health` | liveness + dataset identity |
+| GET | `/api/airport` | normalized airport/runway/collections document |
+| GET | `/api/features` | GeoJSON `FeatureCollection` |
+| GET | `/api/validation` | validation report |
+| GET | `/api/search` | filtered GeoJSON (`feature_type`, `airport`, `designator`, `bbox`) |
+| POST | `/api/process` | normalize a posted observation document (stateless) |
+
+```bash
+curl http://127.0.0.1:8000/api/health
+curl "http://127.0.0.1:8000/api/search?feature_type=runway_threshold"
+curl -X POST --data-binary @examples/vobl-bootstrap-observations.json \
+  http://127.0.0.1:8000/api/process
 ```
 
 `airport-ocr process` exits `0` on `PASS_WITH_EXPECTED_BLOCKERS`, `1` on real
@@ -80,7 +114,7 @@ You can also run it as a module: `python -m airport_ocr ...`.
 ## Project layout
 
 ```
-src/airport_ocr/   intake, coordinates, validation, pipeline, search, CLI
+src/airport_ocr/   intake, coordinates, validation, pipeline, search, webapp, webui, CLI
 tests/             behavioral tests (pytest)
 examples/          provisional VOBL observation fixture
 docs/research/     enterprise architecture & solution research

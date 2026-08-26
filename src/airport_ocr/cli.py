@@ -4,6 +4,7 @@ Subcommands:
 - intake:  inspect (and optionally quarantine) an untrusted source file.
 - process: normalize/validate a source-preserving observation document.
 - search:  query a generated GeoJSON projection.
+- serve:   run the non-operational web application (API + browser UI).
 """
 
 from __future__ import annotations
@@ -84,6 +85,23 @@ def _cmd_process(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_serve(args: argparse.Namespace) -> int:
+    from .pipeline import normalize as _normalize
+    from .webapp import serve
+
+    input_path = Path(args.input)
+    try:
+        document = _read_json(input_path)
+        # Fail fast with a clear message if the dataset cannot be normalized.
+        _normalize(document)
+    except (PipelineError, KeyError, ValueError) as exc:
+        print(f"serve error: {exc}", file=sys.stderr)
+        return 2
+
+    serve(document, host=args.host, port=args.port)
+    return 0
+
+
 def _cmd_search(args: argparse.Namespace) -> int:
     bbox: Optional[List[float]] = None
     if args.bbox is not None:
@@ -142,6 +160,12 @@ def build_parser() -> argparse.ArgumentParser:
     search_parser.add_argument("--designator", default=None)
     search_parser.add_argument("--bbox", default=None, help="min_lon,min_lat,max_lon,max_lat")
     search_parser.set_defaults(func=_cmd_search)
+
+    serve_parser = sub.add_parser("serve", help="Run the non-operational web app (API + UI).")
+    serve_parser.add_argument("input", help="Path to a source-preserving observation JSON file.")
+    serve_parser.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1).")
+    serve_parser.add_argument("--port", type=int, default=8000, help="Bind port (default: 8000).")
+    serve_parser.set_defaults(func=_cmd_serve)
 
     return parser
 
