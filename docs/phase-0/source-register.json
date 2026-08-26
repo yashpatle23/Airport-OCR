@@ -24,7 +24,7 @@
       "discovery_method": "Official-domain web search result matched chart title and attached chart metadata",
       "discovered_at": "2026-08-19",
       "retrieval": {
-        "status": "LOCATED_NOT_ACQUIRED",
+        "status": "ACQUIRED_HASH_RECORDED_RIGHTS_PENDING",
         "attempts": [
           {
             "method": "HTTPS curl with redirects and browser user-agent",
@@ -42,13 +42,17 @@
             "attempted_at": "2026-08-19"
           }
         ],
-        "required_next_action": "User or authorized source steward must upload the original PDF or provide an accessible authorized delivery channel."
+        "required_next_action": "Original PDF acquired and hashed by the user in Colab on 2026-08-26; rights confirmation still required before publication.",
+        "acquired_by": "user (Google Colab intake)",
+        "acquired_at": "2026-08-26",
+        "acquired_filename": "VOBL-ADC (1).pdf"
       },
       "local_file": null,
-      "sha256": null,
+      "sha256": "ef0541fca479c35eb9d47208fddf12d59c011294e047ebfa5c4ac55dc060bf05",
       "media_type": "application/pdf",
-      "byte_size": null,
-      "integrity_status": "PENDING_ORIGINAL_BYTES",
+      "media_type_verified": true,
+      "byte_size": 1449850,
+      "integrity_status": "HASH_RECORDED_IDENTITY_UNVERIFIED_AGAINST_PUBLISHER",
       "rights": {
         "status": "UNCONFIRMED_PERMISSION_REQUIRED",
         "disclaimer_url": "https://aim-india.aai.aero/sites/default/files/menu_item_files/disclaimer_clause.pdf",
@@ -63,11 +67,15 @@
         "approval_reference": null
       },
       "release_status": "BLOCKED",
+      "resolved": [
+        "Original PDF bytes acquired (user Colab intake, 2026-08-26)",
+        "SHA-256 recorded: ef0541fca479c35eb9d47208fddf12d59c011294e047ebfa5c4ac55dc060bf05",
+        "Byte size 1449850; magic-byte type application/pdf verified"
+      ],
       "blockers": [
-        "Original PDF bytes not acquired",
-        "SHA-256 unavailable",
-        "Rights not confirmed",
-        "Named source steward not assigned"
+        "Rights not confirmed (AAI/BIAL permission required before publication/redistribution)",
+        "Named source steward / accountable owner not assigned",
+        "SHA-256 not yet cross-checked against a publisher-provided digest"
       ]
     },
     {
