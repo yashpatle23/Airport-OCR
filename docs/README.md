@@ -3,6 +3,13 @@
 All documents are **non-operational, research-only** and must not be treated as
 authoritative aeronautical data.
 
+## Project overview
+
+- [Completed implementation summary](PROJECT_IMPLEMENTATION_SUMMARY.md) — a
+  consolidated account of the problem, redesign, delivered capabilities,
+  workflows, artifacts, tests, safety decisions, limitations, and delivery
+  references.
+
 ## Current architecture/research
 
 - [Multi-airport extraction research](research/MULTI_AIRPORT_EXTRACTION_RESEARCH.md)

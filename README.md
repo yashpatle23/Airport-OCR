@@ -23,6 +23,13 @@ candidates. An explicit optional mode downloads the VOBL sample chart.
 > result remains provisional until rights and qualified aviation review are
 > recorded.
 
+## Project documentation
+
+For a consolidated account of what was designed, implemented, tested, and
+shipped, see the [project implementation summary](docs/PROJECT_IMPLEMENTATION_SUMMARY.md).
+Detailed requirements, architecture, research, and phase records remain in
+[`planning/`](planning/) and [`docs/`](docs/).
+
 ## Problem scope
 
 Aerodrome charts are visually structured PDFs containing text, tables, vector

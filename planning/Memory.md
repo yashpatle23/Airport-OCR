@@ -97,6 +97,13 @@ JSON/GeoJSON → search/package/report → artifact ZIP`
 
 ## Log (newest first)
 
+### 2026-08-19 — Consolidated implementation documentation
+- Added `docs/PROJECT_IMPLEMENTATION_SUMMARY.md` as the single project-level
+  account of completed goals, architecture, features, workflows, artifacts,
+  case studies, verification, design decisions, limitations, and delivery links.
+- Linked the summary from the root README and documentation index for easier
+  onboarding and project review.
+
 ### 2026-08-19 — Semantic review remediation
 - Removed implicit VOBL compatibility activation from `auto`; only explicit
   `vobl-sample` may supply demo facts.
