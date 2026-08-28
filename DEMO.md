@@ -1,164 +1,154 @@
-# Airport-OCR — demo walkthrough
+# Airport-OCR — senior demo walkthrough
 
-A 5–8 minute demo showing how the BLR/VOBL aerodrome chart is turned into
-structured, searchable data: **PDF → Extract → Identify → Structure → Search**.
+A 6–10 minute demo of **PDF → Extract → Identify → Structure → Search** for the
+five requested aerodrome-chart groups.
 
-> Everything here is **non-operational / research-only** — not authoritative
-> aeronautical data, not for navigation. Say this up front.
+> Start with: **non-operational, research-only, not authoritative, not for
+> navigation.** Rights and qualified human review remain required.
 
----
+## 1. Thirty-second framing
 
-## 0. One-time setup (before the meeting)
+- **Problem:** airport charts are visually structured PDFs, not machine-readable
+  airport databases.
+- **Scope:** airport, runways, taxiways, runway holding positions, and airport
+  coordinates/elevation.
+- **Safety approach:** preserve source evidence; validate deterministic domain
+  invariants; leave missing/uncertain fields blocked or pending review.
+- **Key improvement:** the pipeline is no longer a VOBL-shaped algorithm. It now
+  accepts uploads, derives the airport/runways from the source, and safely stops
+  or stays partial on unsupported layouts.
+
+## 2. Recommended live demo — Colab upload
+
+Open:
+
+<https://colab.research.google.com/github/yashpatle23/Airport-OCR/blob/feat/multi-airport-upload/notebooks/Airport_OCR_Full_Pipeline.ipynb>
+
+Then:
+
+1. `Runtime → Run all`.
+2. Set `SOURCE_MODE = Upload PDF` (the default).
+3. Tick `I_HAVE_PERMISSION_TO_PROCESS`.
+4. Click the browser **Choose Files** upload button and select exactly one PDF.
+5. At the end, download `<source>-<sha8>-airport-ocr-results.zip`.
+
+Talk through the gates:
+
+- SHA-256 + PDF signature + original filename;
+- native-text capability check (a scanned PDF stops and requests a future OCR
+  adapter rather than guessing);
+- page-aware header/runway/taxiway adapters;
+- dynamic reciprocal runway pairing and CRS84 coordinates;
+- expected blockers for values not present in a layout;
+- all-page black-linework holding **candidates**, all `NEEDS_REVIEW`;
+- dynamic search/map/report; optional Gemini paraphrase using `GEMINI_API_KEY`;
+- one complete artifact ZIP.
+
+### Optional deterministic VOBL demo
+
+Choose `Use optional VOBL sample URL`. This explicit profile demonstrates the
+known VOBL result, including 43 legend taxiways and the unresolved 3003/3001 FT
+external-claim conflict. If AAI blocks the download, switch to Upload PDF.
+
+## 3. Show the VOMM architecture difference
+
+Use the supplied Chennai/VOMM chart image to explain why a filename upload was
+not enough:
+
+- title/header format is `CHENNAI INTL. AIRPORT`, `AD.ELEV. 54ft.`;
+- runways are 07/25 and 12/30, not VOBL's 09L/27R and 09R/27L;
+- the runway table has THR elevation but no TDZ column;
+- declared distances are a separate table and must not be treated as physical
+  dimensions;
+- taxiways appear through map/hot-spot `TWY` references rather than VOBL's width
+  legend;
+- holding positions are a line symbol, so vector detections remain candidates.
+
+The committed rights-safe synthetic positioned-word regression returns VOMM,
+ARP `[80.1736036111, 12.9950988889]`, 54 FT, 07/25 + 12/30, physical dimensions
+3658×45 and 2890×45 m when the explicit labels are present, threshold elevations
+43/54/44/48 FT, and **0 validation failures**. Its extraction status is still
+`PARTIAL`: missing TDZ/taxiway widths and accepted holding geometry remain
+expected blockers rather than being hidden by the zero-failure count.
+
+## 4. Local no-network regression demo
 
 ```bash
 git clone https://github.com/yashpatle23/Airport-OCR.git
 cd Airport-OCR
-python -m pip install -e ".[dev]"     # or:  export PYTHONPATH=src
-```
-
-Runs on Python 3.9+ with **no third-party runtime dependencies**.
-
----
-
-## 1. The 30-second framing (say this)
-
-- **Problem:** an aerodrome chart is an unstructured PDF. We need machine-readable
-  data for five things: **airport, runways, taxiways, runway holding positions,
-  and coordinates/elevation**.
-- **Approach:** a provenance-first pipeline that extracts *evidence*, validates it
-  deterministically, and never fabricates or auto-accepts safety-relevant data.
-- **Honesty is a feature:** unreadable/uncertain things stay explicitly blocked or
-  marked "needs review" instead of being guessed.
-
----
-
-## 2. Live demo — one command (can't fail)
-
-```bash
+git switch feat/multi-airport-upload
+python -m pip install -e ".[dev]"
 python scripts/demo.py
 ```
 
-This runs the whole flow on a **real word-sample** bundled in the repo (no PDF or
-internet needed) and narrates each stage. Talk through the output:
+This intentionally remains the bundled **VOBL regression fixture** so a demo can
+run without source PDF/network access. Artifacts land in `demo_out/`.
 
-- **Extract** — ICAO `VOBL`, runway pairs `09L/27R` & `09R/27L`, **43 taxiways**
-  parsed from the legend.
-- **Identify + validate** — `PASS_WITH_EXPECTED_BLOCKERS`, **0 failures**
-  (26 PASS / 2 INFO / 3 expected blockers). Point out the blockers are *honest*
-  (source rights, original bytes, holding positions) — not errors.
-- **Structure** — one `vobl_package.json` + `vobl_features.geojson` covering all
-  five groups.
-- **Search** — query by feature type / designator / bounding box.
-- **Summary** — a deterministic Markdown summary; note the **3003 ft vs 3001 ft
-  elevation conflict is preserved, not silently resolved**.
-
-Artifacts land in `./demo_out/`.
-
-### Optional: run it on the real PDF (adds holding-position candidates)
+With a permitted VOBL PDF and PyMuPDF:
 
 ```bash
 pip install pymupdf
 python scripts/demo.py --pdf VOBL-ADC.pdf
 ```
 
-Now the **runway holding positions** step runs: it clusters black marking strokes
-into **review-only candidates** (status `NEEDS_REVIEW`) — emphasise these are
-candidates, not accepted data, because black linework also includes taxiway
-centreline dashes.
-
----
-
-## 3. Show the web app (optional, ~1 min)
+## 5. Show the offline web app
 
 ```bash
 airport-ocr serve examples/vobl-from-pdf-observations.json --port 8000
-# open http://127.0.0.1:8000
+# http://127.0.0.1:8000
 ```
 
-A dependency-free browser UI: airport card, the **elevation-conflict** banner,
-the runway table, the 43 taxiways, a feature **search** box, and a self-contained
-**map** of ARP + runway thresholds. No external assets or network calls.
+The title, airport name, elevation state, runway table, and map are data-driven;
+they no longer display VOBL/Bengaluru when processing another airport. The UI
+has no external assets/network calls.
 
----
-
-## 4. Show the Colab notebook (great for a non-technical audience)
-
-**Open in Colab (full pipeline):**
-<https://colab.research.google.com/github/yashpatle23/Airport-OCR/blob/feat/airport-ocr-poc/notebooks/Airport_OCR_Full_Pipeline.ipynb>
-
-`Runtime ▸ Run all` → it downloads the PDF (or you upload it), extracts all five
-groups, structures + searches, draws the map, and writes a summary (with an
-optional AI paraphrase if an `OPENAI_API_KEY` secret is set).
-
----
-
-## 5. Show it's engineered, not a script (~1 min)
+## 6. Show the engineering
 
 ```bash
-pytest -q            # 67 passing tests
+pytest -q
+python scripts/build_full_pipeline_notebook.py
 ```
 
-Point at the package layout:
+Key files:
 
-```
-src/airport_ocr/
-  intake.py       SHA-256 + file-signature + quarantine (never fakes a scan)
-  pdf_words.py    native PDF text -> observations (airport/runways/43 taxiways)
-  coordinates.py  deterministic DMS -> CRS84 (keeps the exact source string)
-  pipeline.py     validation + normalized JSON + GeoJSON
-  holding.py      review-only holding-position candidate detector
-  report.py       structured package + summary (+ safe optional-AI prompt)
-  search.py       GeoJSON query;   webapp.py / webui.py  offline web app
-docs/             research, Phase 0 governance, Phase 1 benchmark
-notebooks/        full + step-by-step Colab notebooks
+```text
+src/airport_ocr/pdf_words.py   page-aware multi-layout adapters + diagnostics
+src/airport_ocr/pipeline.py    airport-independent domain invariants
+src/airport_ocr/coordinates.py exact DMS→CRS84 + reciprocal runway rules
+src/airport_ocr/holding.py     page-qualified review-only vector candidates
+src/airport_ocr/report.py      package, summary, escaped self-contained HTML
+src/airport_ocr/web*.py        dynamic offline API/UI
+scripts/build_full_pipeline_notebook.py  deterministic Colab generator
+planning/ + docs/              PRD, architecture, rules, phases, research, memory
 ```
 
-Mention the docs: an enterprise architecture study, a Phase 0 governance/rights
-package, and a Phase 1 discovery benchmark — the code is the runnable core of a
-larger, documented plan.
+## 7. Honest limitations (say these)
 
----
-
-## 6. What was built (summary slide)
-
-| Group | Result |
-|---|---|
-| Airport | ICAO + name from native text |
-| Coordinates/elevation | ARP in CRS84; elevation **conflict preserved** |
-| Runways | 2 pairs, 4 thresholds, dims/units validated; coords corrected from native text |
-| Taxiways | **43** extracted from the legend (was previously blocked) |
-| Runway holding positions | **review-only candidates** from the vector layer |
-
-Plus: intake/SHA-256 provenance, deterministic validation (67 tests), a web app,
-two Colab notebooks, and a full research/governance doc set.
-
----
-
-## 7. Honest limitations (say these — they build trust)
-
-- **Non-operational**; holding positions are **candidates pending review**.
-- **Source rights** (AAI/BIAL) and a **named reviewer** are still required before
-  the data can be treated as anything beyond research.
-- The recorded PDF **SHA-256** anchors provenance; it isn't yet cross-checked
-  against a publisher digest.
-
----
+- Native-text/layout adapters do not equal universal extraction. Scanned PDFs
+  need OCR; unknown optional layouts stay partial.
+- Explicit `TWY X` references are candidate inventory, not proof of completeness.
+- Holding clusters can include other black linework and need human review.
+- No surveyed runway polygons; connectors join source thresholds only.
+- No operational mode exists. Source rights and an accountable reviewer remain
+  mandatory.
 
 ## 8. Likely questions
 
-- *"Is this OCR?"* — No; it reads the PDF's native text layer (exact, no OCR
-  errors). OCR is a documented fallback for scanned charts.
-- *"Why are holding positions only candidates?"* — They're drawn in the generic
-  black line layer (not colour-separable), so we cluster and flag for review
-  rather than guess.
-- *"Why keep two elevation values?"* — The chart and the eAIP text disagree
-  (3003 vs 3001 ft); we never silently pick one for safety-relevant data.
-- *"Can it scale to other airports?"* — Yes; the extractor is generic. Per-chart
-  tuning + a labelled gold set are the documented next steps.
+- **“Can I upload another airport?”** Yes. Upload is the default. Supported
+  native-text layouts are structured; unsupported required layouts stop safely;
+  optional gaps remain visible blockers.
+- **“Is this OCR?”** Not yet. The current branch reads exact native PDF words.
+  OCR is a planned adapter for scanned documents.
+- **“Why not use AI to read everything?”** AI is only an optional downstream
+  paraphrase. It cannot create/correct/select aeronautical facts.
+- **“Why no TDZ value for VOMM?”** The supplied runway table does not contain a
+  TDZ column. The system returns `not extracted`; it does not invent one.
+- **“Why are holding positions candidates?”** The chart represents them as
+  linework among other black vectors. AIXM also distinguishes the operational
+  holding position from its marking geometry; review is required.
 
----
+## One-line pitch
 
-## 9. One-line pitch
-
-> "It turns an aerodrome-chart PDF into validated, searchable JSON for the five
-> requested feature groups — and it's honest about what it can't yet verify."
+> Airport-OCR accepts an aerodrome-chart PDF, extracts the five requested groups
+> into searchable JSON/GeoJSON, and makes every unsupported or unverified fact
+> visible instead of guessing.

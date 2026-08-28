@@ -1,108 +1,139 @@
 # Memory — Airport-OCR
 
-> Rolling progress log so context survives across chats, tools, and sessions.
-> **Append newest entries at the top.** When you finish meaningful work, add a
-> dated entry: what changed, why, key decisions, and what's next. This is the
-> file to read first when resuming.
+> Read this first when resuming. Append the newest dated log entry at the top and
+> refresh the snapshot whenever branch/tests/PR state changes.
 
 Companion docs: [`PRD.md`](PRD.md) · [`Architecture.md`](Architecture.md) ·
 [`Rules.md`](Rules.md) · [`Phases.md`](Phases.md) · [`Design.md`](Design.md)
 
----
+## Snapshot
 
-## Snapshot (current state)
+- **Repo:** `yashpatle23/Airport-OCR`
+- **Working clone:** `/projects/sandbox/Airport-OCR-clone`
+- **Branch:** `feat/multi-airport-upload` (created from `feat/airport-ocr-poc`).
+- **Current task:** final semantic review approved with no high/medium findings;
+  implementation commit, immutable Colab pin, push, and review link remain.
+- **Tests:** **94/94 passing** with rights-safe VOMM, profile/header isolation,
+  strict list/coordinate/provenance/numeric handling, controlled CLI errors, and
+  cross-layer partial-status coverage.
+- **Representative checks:** VOBL regression + source-shaped VOMM + scanned-PDF
+  safe-stop + profile-mismatch rejection all pass.
+- **Notebook:** 22 cells; regeneration byte-identical; upload/default/ZIP/dynamic-
+  search/all-page-holding assertions pass.
+- **Core runtime:** Python 3.9+, zero third-party dependencies.
+- **Colab adapters:** PyMuPDF, matplotlib, optional `google-generativeai`.
+- **Safety:** `OPERATIONAL_USE = False`; no operational/authoritative mode.
 
-- **Repo:** `yashpatle23/Airport-OCR` · working branch **`feat/airport-ocr-poc`**.
-- **Tests:** **69 passing** (`pytest`). Runtime deps: **none**; Python **3.9+**.
-- **Pipeline:** `PDF → Extract → Identify → Structure → Search` runs end-to-end
-  on VOBL; validation = `PASS_WITH_EXPECTED_BLOCKERS`, **0 real failures**.
-- **Interfaces:** CLI (`intake`, `process`, `search`, `serve`,
-  `extract-pdf-words`), offline web app (API + UI + SVG map), and
-  `report.render_html(package, ai_text=None)` styled HTML card.
-- **AI:** optional **Gemini** paraphrase (`models/gemini-flash-latest` via
-  `google-generativeai`), deterministic fallback; paraphrase-only.
-- **PRs:** PR #1 **merged** into `main`; PR #2 **open** (base `main` ←
-  `feat/airport-ocr-poc`).
+## Current architecture
 
-## Key facts (VOBL case study)
+`PDF → controlled intake → native-text capability gate → page-aware words →
+layout adapters → reciprocal/domain assembly → invariant validation →
+JSON/GeoJSON → search/package/report → artifact ZIP`
 
-- ICAO **VOBL**, chart `AD 2 VOBL 1-101` (AMDT 06/2025).
-- Runways **09L/27R** & **09R/27L**, 4000 × 45 m.
-- **43 taxiways** (B3 = 15 m, rest 23 m) from the pavement legend.
-- ARP 13°11′56″N 077°42′20″E → `[77.7055555556, 13.1988888889]` (CRS84).
-- **Elevation conflict preserved unresolved:** `3003 ft` (chart) vs `3001 ft`
-  (eAIP index) — selected value stays `null`.
-- Holding positions: **25 review-only candidates** (`CANDIDATES_PENDING_REVIEW`,
-  each `NEEDS_REVIEW`); accepted set `BLOCKED_SOURCE_BYTES_REQUIRED`.
-- Source PDF SHA-256:
-  `ef0541fca479c35eb9d47208fddf12d59c011294e047ebfa5c4ac55dc060bf05`
-  (recorded in `docs/phase-0/source-register.json`).
+- Uploads use `profile="auto"`; airport facts come only from that source.
+- `vobl-sample` is an explicit compatibility/regression profile and refuses a
+  non-VOBL ICAO.
+- Required unsupported fields stop extraction; optional omissions are expected
+  blockers.
+- Holding geometry and text-reference taxiways remain review candidates.
+- AI is optional downstream paraphrase only.
 
-## Standing decisions (why things are the way they are)
+## Case-study facts
 
-- **`render_html` is self-contained** (inline CSS, escaped values) — rejected
-  external CSS/JS for offline + safety.
-- **Holding = review-only candidates** via black-linework clustering — color
-  filtering rejected (holding marking is `#000000`, not color-separable; stop-bar
-  `#ff0000` / no-entry `#bf00ff` are separable but out of scope).
-- **Taxiways populated only** in `examples/vobl-from-pdf-observations.json`;
-  bootstrap example stays blocked (avoid cascading test churn).
-- **`original_bytes_available = False`** kept even after SHA-256 recorded — we
-  have text/hash, not authoritative rights; rights blocker **not** flipped.
-- **Large exports gitignored:** `holding_candidates.json`, `drawings*.json`,
-  `vobl_words.json`, `demo_out/`.
-- **Notebooks built via a Python builder** (valid nbformat JSON) — never
-  hand-edit `.ipynb` JSON.
-- **AI switched OpenAI → Gemini** at user's request (secret `GEMINI_API_KEY`).
+### VOBL regression
+- `AD 2 VOBL 1-101`; 09L/27R + 09R/27L; 4000×45 m.
+- 43 width-legend taxiways (B3 15 m, rest 23 m).
+- ARP `[77.7055555556, 13.1988888889]`.
+- Explicit sample profile preserves separate 3003/3001 FT claims unresolved.
+- Recorded source SHA-256:
+  `ef0541fca479c35eb9d47208fddf12d59c011294e047ebfa5c4ac55dc060bf05`.
 
-## Environment / workflow reminders
+### VOMM attached-chart structural check
+- `AD 2 VOMM 1-101`, 30 NOV 2023; Chennai Intl. Airport.
+- ARP `12°59′42.356″N 080°10′24.973″E` →
+  `[80.1736036111, 12.9950988889]`; AD elevation 54 FT.
+- Runways 07/25 and 12/30; explicit map dimension labels represented in the
+  synthetic check as 3658×45 m and 2890×45 m.
+- THR elevations 43/54/44/48 FT; no TDZ column, so TDZ remains not extracted.
+- Taxiway references come from hot-spot `TWY` text and remain candidate-grade;
+  holding positions are cartographic line symbols and remain review-only.
+- The permitted VOMM source is not committed. A rights-safe synthetic positioned-
+  word fixture now provides a durable structural regression; the original PDF is
+  still required to verify actual PyMuPDF block/word ordering.
 
-- Test runner: `~/.pyenv/versions/3.11.15/bin/python -m pytest -q`
-  (system `python3` is 3.9 and lacks pytest).
-- Push to `feat/airport-ocr-poc` (never `main` unprompted). Rebase onto
-  `origin/feat/airport-ocr-poc` before pushing (remote has moved several times).
-- Open PRs with `gh api repos/{owner}/{repo}/pulls` — **not** `gh pr create`
-  (GraphQL-backed, fails here). Default-branch PATCH returns 403 (known limit).
+## Standing decisions
 
----
+1. **No false universality.** “Upload any map” means safe intake/diagnosis;
+   current deterministic adapters do not promise full extraction from every
+   publisher/layout or scanned PDF.
+2. **No cross-airport defaults.** The old Bengaluru name, exact VOBL runway set,
+   4000×45 dimensions, and 3001 FT external claim exist only behind explicit
+   `profile="vobl-sample"`; missing metadata never activates compatibility mode.
+3. **Declared distances are not dimensions.** TORA/TODA/ASDA/LDA are never used
+   to fill physical length/width.
+4. **Required vs optional.** Missing ICAO/ARP/elevation/complete reciprocal pair
+   stops; missing physical dimensions/TDZ/taxiway width becomes a blocker.
+5. **Page evidence.** Equal PyMuPDF block IDs on different pages are never merged.
+6. **Candidate boundary.** Bare map letters are not accepted as taxiways;
+   explicit `TWY X` references and vector holds remain review candidates.
+7. **Notebook is generated.** Edit
+   `scripts/build_full_pipeline_notebook.py`, then regenerate
+   `notebooks/Airport_OCR_Full_Pipeline.ipynb`.
+8. **Upload-first artifacts.** Preserve source name, use `<stem>-<sha8>`, and
+   download one ZIP containing every evidence/output artifact.
+9. **HTML/UI safety.** Dynamic chart/AI text is escaped; no external UI assets.
+10. **Large/source data excluded.** Do not commit source PDFs or regenerable
+    word/drawing/candidate dumps.
 
-## Log
+## Workflow reminders
 
-### 2026-08-19 — Planning doc set added
-- Added `planning/`: **PRD, Architecture, Rules, Phases, Design, Memory** —
-  grounded in the real repo (module map, CLI surface, actual CSS tokens,
-  phase statuses).
-- Design tokens captured from `report.py` (slate palette, `system-ui` stack,
-  920px card). Rules codify the non-operational / zero-dep / escape-everything /
-  preserve-conflicts guarantees.
-- **Next:** commit + push these docs to `feat/airport-ocr-poc`; optionally link
-  from `README.md`; decide on merging PR #2.
+- Test runner: `~/.pyenv/versions/3.11.15/bin/python -m pytest -q`.
+- Work/push branch: `feat/multi-airport-upload`; never push `main` unprompted.
+- Before push: fetch/rebase safely if needed, run full tests, regenerate notebook,
+  inspect git diff/status.
+- GitHub PRs: use `gh api repos/{owner}/{repo}/pulls`, not `gh pr create`.
 
-### 2026-08-19 — Notebook AI cell → Gemini + polished render (commit `66dc630`)
-- Rewrote the Full-Pipeline notebook's summary cell: pulls `GEMINI_API_KEY` from
-  Colab secrets, calls `models/gemini-flash-latest`, then renders the whole
-  package via `render_html`, saving `vobl_report.html`. Deterministic fallback
-  when no key.
+## Log (newest first)
 
-### 2026-08-19 — `render_html` renderer (commit `4105267`)
-- Added `report.render_html(package, ai_text=None)` → self-contained styled HTML
-  (header + badges, fact grid with highlighted elevation conflict, runway table,
-  taxiway chips, holding-candidate tile, AI/deterministic narrative, caveat
-  footer). Escapes all values (untrusted chart/AI text). +2 tests. 69 pass.
+### 2026-08-19 — Semantic review remediation
+- Removed implicit VOBL compatibility activation from `auto`; only explicit
+  `vobl-sample` may supply demo facts.
+- Replaced global ARP/date matching with header-block association and evidence;
+  added controlled missing-bearing handling and strict taxiway-list parsing.
+- Preserved extraction status/issues through normalized/package/report/UI output
+  and changed partial/candidate/expected-blocker presentation to warnings.
+- Added explicit name provenance plus a rights-safe synthetic VOMM fixture and
+  cross-layer regression coverage. Final semantic review is **APPROVED** with no
+  confirmed high/medium findings; full suite passes **94 tests**.
+- Hardened terminal-axis DMS, source-byte/SHA provenance, numeric-domain checks,
+  and ordinary CLI file/JSON errors so malformed input fails closed without
+  traceback or misleading PASS output.
+- Remaining delivery step: create the implementation commit, pin every notebook/
+  documentation URL to that immutable SHA, push, smoke-test, and open/update PR.
 
-### earlier — foundation (see `git log` and `docs/`)
-- `f42ced2` demo script + walkthrough (`DEMO.md`, `scripts/demo.py`).
-- `6f399eb` full end-to-end pipeline: report module + Colab notebook.
-- `87f4c0b` stop tracking large regenerable exports (gitignore).
-- `7438dd3` review-only holding-position candidate detector (`holding.py`).
-- `9d04cd2` recorded VOBL PDF provenance (SHA-256) in source register.
-- Core package (`intake`, `coordinates`, `pdf_words`, `pipeline`, `validation`,
-  `report`, `search`, `webapp`, `webui`, `cli`) + Phase-0/1 governance docs.
+### 2026-08-19 — Multi-airport + upload-first implementation (in progress)
+- Investigated old VOBL-specific assumptions and the supplied VOMM chart.
+- Added research (`MULTI_AIRPORT_EXTRACTION_RESEARCH.md`) and detailed design
+  (`MULTI_AIRPORT_DESIGN.md`) with ICAO/AIXM/RFC/PyMuPDF sources.
+- Generalized `pdf_words.py` and `pipeline.py`: page-aware blocks, flexible
+  header/elevation, dynamic reciprocal runway pairing, explicit dimensions,
+  taxiway references, diagnostics, invariant validation and safe blockers.
+- Generalized report/web UI/CLI; holding candidate IDs now include page.
+- Added deterministic notebook builder and 22-cell upload-first Full Pipeline:
+  upload button, permission gate, SHA run ID, all-page candidates, dynamic
+  search/map, Gemini fallback, complete ZIP.
+- Synthetic VOMM run: correct airport/ARP/elevation/runway pairs/dimensions/THR
+  values and taxiway candidates `B/C/E/F/G/I/M`; 0 failures.
+- Full regression suite: **69 passed**. `compileall`, `git diff --check`, scanned-
+  PDF stop, VOBL-profile mismatch rejection, and notebook reproducibility checks
+  pass. Notebook regeneration is byte-identical.
+- **Next:** semantic review, commit, push, create review link.
 
----
+### 2026-08-19 — Planning set / Gemini report foundation
+- Added PRD/Architecture/Rules/Phases/Design/Memory.
+- Added `render_html` and Gemini notebook summary; 69 tests passed at that point.
+- PR #1 merged; PR #2 carried the VOBL POC branch before this new increment.
 
-### How to update this file
-1. Add a dated entry at the top of **Log** (newest first).
-2. Refresh **Snapshot** if branch/tests/PR state changed.
-3. Record any new **standing decision** with its rationale.
-4. Note the immediate **Next** step so the next session resumes cleanly.
+### Earlier — foundation
+- Controlled intake, exact DMS normalization, VOBL fixtures/benchmark,
+  GeoJSON/search, offline web app, report, demo script and holding candidates.

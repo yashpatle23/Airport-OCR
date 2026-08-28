@@ -14,7 +14,7 @@ SAMPLE = Path(__file__).resolve().parents[1] / "examples" / "vobl-words-sample.j
 @pytest.fixture
 def normalized_report():
     dump = json.loads(SAMPLE.read_text())
-    observations = extract_from_words(dump)
+    observations = extract_from_words(dump, profile="vobl-sample")
     normalized, geojson, report = normalize(observations)
     return normalized, report
 
@@ -24,6 +24,7 @@ def test_build_package_covers_five_groups(normalized_report):
     pkg = build_package(normalized, report)
 
     assert pkg["operational_use"] is False
+    assert pkg["extraction"]["status"] == "PARTIAL"
     # 1. Airport, 5. coordinates/elevation
     assert pkg["airport"]["icao"] == "VOBL"
     assert pkg["airport"]["coordinates_elevation"]["arp"]["coordinates_lonlat"][0] == pytest.approx(77.70555, abs=1e-3)
@@ -86,6 +87,7 @@ def test_render_html_deterministic(normalized_report):
     assert "Kempegowda International Airport Bengaluru" in html
     assert "NON-OPERATIONAL" in html
     assert "PASS_WITH_EXPECTED_BLOCKERS" in html
+    assert "EXTRACTION PARTIAL" in html
     assert "Runways" in html and "09L" in html
     assert "Taxiways (43)" in html
     assert "unresolved conflict" in html          # 3003 vs 3001

@@ -1,135 +1,132 @@
-# Airport OCR Proof-of-Concept Design
+# Airport-OCR proof-of-concept design
 
-**Status:** Phase 2 foundation; non-operational  
-**Primary flow:** Source intake → candidate observations → deterministic normalization → validation → JSON/GeoJSON → search  
-**Current source:** provisional VOBL bootstrap observations; the official PDF and rights approval remain external blockers
+**Status:** multi-layout native-text increment · non-operational
+**Flow:** `PDF → Extract → Identify → Structure → Search`
+**Case studies:** VOBL regression + supplied VOMM/Chennai layout
 
-## 1. Goals
+> This is research tooling, not authoritative aeronautical data and not for navigation.
 
-The proof of concept turns the verified Phase 1 script into a reusable Python package and CLI. It provides the safe parts of the target workflow now, while defining replaceable boundaries for PDF, OCR, and computer-vision extractors later.
+## 1. Implemented scope
 
-Implemented capabilities:
+1. controlled intake: media signature, SHA-256, extension mismatch, optional
+   content-addressed quarantine, rights/malware state recording;
+2. page-aware PyMuPDF word-dump adapter (PyMuPDF stays outside core runtime);
+3. deterministic chart/title, ARP, elevation, runway-row, explicit-dimension,
+   taxiway-legend/reference adapters;
+4. dynamic reciprocal runway pairing for arbitrary valid 01–36 L/R/C ends;
+5. exact DMS→CRS84 normalization with source text preserved;
+6. airport-independent domain validation and explicit partial/blocker states;
+7. normalized JSON, RFC 7946 GeoJSON, search, package, Markdown/HTML report;
+8. page-qualified black-linework holding candidates (`NEEDS_REVIEW`);
+9. dynamic offline stdlib web app;
+10. generated upload-first Colab with an optional VOBL sample profile and a full
+    artifact ZIP.
 
-1. inspect and register a local PDF or image without treating it as trusted;
-2. compute SHA-256, identify media type from file signatures, and optionally copy bytes into a content-addressed quarantine directory;
-3. preserve chart identity, retrieval, rights, and malware-scan state in a source manifest;
-4. normalize source-preserving airport/runway observations;
-5. parse DMS coordinates deterministically and export CRS84 longitude/latitude;
-6. validate ICAO, reciprocal runway designators, dimensions, elevation claims, and incomplete-collection semantics;
-7. preserve conflicting source claims without silently selecting one;
-8. generate normalized JSON, GeoJSON, validation, and reproducibility manifests;
-9. search generated GeoJSON by feature type, designator, airport, and bounding box.
+## 2. Not implemented/claimed
 
-Not implemented or claimed:
+- operational/authoritative use;
+- universal layout coverage;
+- OCR for textless/scanned PDFs;
+- complete map-label taxiway inventory when no structured legend/table exists;
+- accepted holding positions or surveyed runway polygons;
+- automatic conflict resolution or human-review approval;
+- source licensing approval or malware scanning.
 
-- authoritative or operational aeronautical data;
-- OCR accuracy;
-- semantic PDF-vector interpretation;
-- complete taxiway or runway-holding extraction;
-- georeferenced surface geometry;
-- automated human-review approval;
-- source licensing approval;
-- malware scanning (the CLI records external scanner state but does not pretend to scan).
-
-## 2. Package structure
+## 3. Package structure
 
 ```text
 src/airport_ocr/
-├── __init__.py       public package metadata
-├── __main__.py       `python -m airport_ocr`
-├── cli.py            command-line boundary
-├── coordinates.py    DMS and runway-designator domain helpers
-├── intake.py         source signature, digest, quarantine, and manifest
-├── pipeline.py       normalization and export orchestration
-├── search.py         small GeoJSON search projection
-└── validation.py     structured validation results
+├── intake.py         untrusted source manifest/quarantine
+├── pdf_words.py      page-aware native-text adapters + diagnostics
+├── coordinates.py    exact DMS and reciprocal runway helpers
+├── pipeline.py       invariant validation + normalized JSON/GeoJSON
+├── validation.py     PASS/FAIL/EXPECTED_BLOCKER/INFO
+├── holding.py        all-page review-only vector candidates
+├── search.py         GeoJSON filters
+├── report.py         package, deterministic/AI prompt, escaped HTML
+├── webapp.py         stdlib API
+├── webui.py          dynamic self-contained browser UI
+├── cli.py            command boundary
+└── __main__.py
 ```
 
-## 3. Commands
-
-### `airport-ocr intake`
-
-Input is untrusted. The command streams the file to compute a digest, inspects magic bytes, records extension mismatches, and optionally stores a verified byte-for-byte copy in `quarantine/<sha256>.<ext>`. Existing content-addressed files are never overwritten with different bytes.
-
-A file entering quarantine is not approved for parsing or publication. The manifest records `malware_status`, `rights_status`, and `operational_use=false` independently.
-
-### `airport-ocr process`
-
-Consumes source-preserving observation JSON, not arbitrary model output. It validates and normalizes supported airport/runway fields, writes deterministic outputs, and leaves unsupported/incomplete collections explicitly blocked. `--fail-on-blockers` lets automated workflows reject provisional runs.
-
-### `airport-ocr search`
-
-Queries a generated GeoJSON projection. This demonstrates search semantics without introducing a second source of truth. It supports attribute and bounding-box filters and returns another FeatureCollection.
-
-## 4. Trust boundaries
+## 4. Trust/capability flow
 
 ```mermaid
 flowchart LR
-    U[Untrusted PDF/image] --> I[Intake signature + digest]
-    I --> Q[Content-addressed quarantine]
-    Q -. future approved extractor .-> O[Raw observations]
-    M[Manual/approved extractor observations] --> O
-    O --> N[Normalizer]
-    N --> V[Deterministic validation]
-    V -->|fail| X[Rejected run]
-    V -->|expected blockers| P[Provisional outputs]
-    V -->|future approved gates| C[Candidate review queue]
-    P --> J[JSON/GeoJSON]
-    J --> S[Search projection]
+  U[Untrusted uploaded PDF] --> I[Intake signature + SHA]
+  I --> T{Native positioned text?}
+  T -->|no| O[OCR_REQUIRED diagnostic; stop]
+  T -->|yes| E[Page-aware evidence]
+  E --> A[Layout adapters]
+  A --> D{Required fields usable?}
+  D -->|no| X[Unsupported-layout diagnostic; no package]
+  D -->|yes| N[Domain assembly + normalize]
+  N --> V[Invariant validation]
+  V --> P[Provisional JSON/GeoJSON/package]
+  E --> H[Vector holding candidates]
+  H --> R[NEEDS_REVIEW queue]
+  P --> S[Search/report/artifact ZIP]
 ```
 
-Document content never controls tool execution. Intake does not execute JavaScript, attachments, embedded commands, or external references. Future parser/OCR workers must run in isolated, resource-limited environments.
+Source/chart/AI text never controls execution. Dynamic values are escaped before
+HTML. No profile can inject values into a non-matching ICAO.
 
 ## 5. Data rules
 
-- Source DMS strings are retained alongside parsed components and decimal output.
-- GeoJSON is RFC 7946 longitude/latitude (`OGC:CRS84`).
-- Elevation remains an attribute with value, unit, meaning, vertical datum, source, and status.
-- A connector between reciprocal thresholds is labelled as a derived connector, not a surveyed runway extent.
-- Empty taxiway or holding arrays must include `NOT_EXTRACTED_NOT_ABSENT` when features are visible but extraction is blocked.
-- A conflict contains multiple claims and no `selected_value` until adjudicated.
-- Expected source/rights/completeness blockers remain visible and can be promoted to strict failures by policy.
+- Page identity and source word coordinates are retained at extraction.
+- Required: unique ICAO, ARP DMS pair, elevation claim, ≥1 complete reciprocal
+  runway pair and both threshold positions.
+- Optional physical dimensions, TDZ elevation, taxiway widths/inventory, and
+  holding geometry may remain blocked/candidate-grade.
+- TORA/TODA/ASDA/LDA never fill physical runway dimensions.
+- One elevation claim is `SINGLE_SOURCE`; differing claims remain unresolved
+  with no selection.
+- GeoJSON uses RFC 7946 longitude/latitude. Runway lines are labelled threshold
+  connectors, not surveyed extents.
+- Empty unextracted collections are `NOT_EXTRACTED_NOT_ABSENT`.
 
 ## 6. Extractor extension contract
 
-Future native-PDF, OCR, and CV adapters should implement an observation-provider boundary rather than write canonical data directly. Each candidate must supply:
+Future native-text/OCR/CV adapters emit source candidates, not canonical facts:
 
 ```json
 {
-  "extractor": {"name": "provider", "version": "pinned-version", "configuration_digest": "..."},
-  "source_document_id": "...",
-  "page": 1,
+  "extractor": {"name": "provider", "version": "pinned"},
+  "source_document_id": "sha256:...",
+  "page": 0,
   "source_bbox": [0, 0, 100, 20],
-  "source_text": "09L",
+  "source_text": "07",
   "candidate_type": "runway_direction",
-  "candidate_value": "09L",
+  "candidate_value": "07",
   "confidence": {"text": 0.99, "classification": 0.98},
   "status": "RAW_OBSERVATION"
 }
 ```
 
-Adapters may propose observations but cannot mark them authoritative or bypass validation/review.
+Adapters cannot mark outputs authoritative or bypass validation/review.
 
-## 7. Next implementation increments
+## 7. Interfaces
 
-Once source and governance blockers close:
-
-1. add a sandboxed PyMuPDF native text/vector adapter;
-2. add an independent PDF parser for differential checks;
-3. add Tesseract multi-DPI OCR behind the observation contract;
-4. add provider-neutral managed OCR adapters only when approved;
-5. add page-space evidence crops and a reviewer UI;
-6. add PostGIS persistence and OGC API Features;
-7. benchmark complete taxiway and holding-position recall/precision;
-8. add bitemporal accepted-feature versions and atomic airport releases.
+- `airport-ocr intake`
+- `airport-ocr extract-pdf-words` (`--profile auto` by default, optional metadata)
+- `airport-ocr process`
+- `airport-ocr search`
+- `airport-ocr serve`
+- `notebooks/Airport_OCR_Full_Pipeline.ipynb` generated by
+  `scripts/build_full_pipeline_notebook.py`
 
 ## 8. Acceptance for this increment
 
-- package installs without runtime dependencies;
-- CLI runs through `python -m airport_ocr` and installed entry point;
-- intake creates a digest/provenance manifest and never claims to malware-scan;
-- VOBL fixture processing reproduces verified normalized coordinates and conflict state;
-- generated GeoJSON remains explicitly provisional;
-- search returns only matching features;
-- tests pass on Python 3.10+;
-- documentation and historical Phase 0/1 evidence are committed with the code.
+- VOBL regression output remains stable;
+- VOMM-shaped text extracts VOMM/Chennai, ARP/elevation, 07/25 + 12/30, explicit
+  dimensions/thresholds, and taxiway candidates without VOBL contamination;
+- no TDZ column yields blockers, not invented values;
+- scanned/native-text-empty input stops with an OCR-required diagnostic;
+- uploaded filenames and outputs are generic/SHA-qualified;
+- full test suite passes; core retains zero runtime dependencies;
+- all output remains provisional and non-operational.
+
+See [`MULTI_AIRPORT_DESIGN.md`](MULTI_AIRPORT_DESIGN.md) for detailed algorithms
+and [`../research/MULTI_AIRPORT_EXTRACTION_RESEARCH.md`](../research/MULTI_AIRPORT_EXTRACTION_RESEARCH.md)
+for standards/research rationale.

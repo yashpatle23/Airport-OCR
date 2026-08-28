@@ -25,6 +25,7 @@ def test_intake_computes_digest_and_manifest(tmp_path):
     assert result.sha256 == hashlib.sha256(MINIMAL_PDF).hexdigest()
     assert result.byte_size == len(MINIMAL_PDF)
     assert manifest["operational_use"] is False
+    assert manifest["original_bytes_available"] is True
     assert manifest["intake_status"] == "INSPECTED_ONLY"
     assert manifest["malware_status"] == "NOT_SCANNED"
     # Intake must never claim to have scanned the file.

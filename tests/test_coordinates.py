@@ -36,6 +36,8 @@ def test_parse_dms_southern_and_western_are_negative():
     "value,axis",
     [
         ("091°00′00″N", "latitude"),   # latitude > 90
+        ("090°00′00.001″N", "latitude"),  # non-zero remainder at latitude maximum
+        ("180°00′00.001″E", "longitude"),  # non-zero remainder at longitude maximum
         ("013°60′00″N", "latitude"),   # minutes >= 60
         ("013°00′60″N", "latitude"),   # seconds >= 60
         ("077°42′20″N", "longitude"),  # wrong hemisphere for longitude
@@ -71,3 +73,11 @@ def test_is_valid_designator():
     assert not is_valid_designator("00")
     assert not is_valid_designator("37")
     assert not is_valid_designator("9L")
+
+
+
+def test_parse_dms_accepts_exact_axis_maxima():
+    north, _ = parse_dms("90°00′00″N", "latitude")
+    west, _ = parse_dms("180°00′00″W", "longitude")
+    assert to_float(north) == 90.0
+    assert to_float(west) == -180.0

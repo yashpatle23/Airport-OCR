@@ -12,7 +12,7 @@ INDEX_HTML = """<!DOCTYPE html>
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Airport-OCR &mdash; VOBL (non-operational)</title>
+<title>Airport-OCR &mdash; non-operational airport chart</title>
 <style>
   :root {
     --bg: #0f172a; --panel: #1e293b; --panel2: #273449; --ink: #e2e8f0;
@@ -64,8 +64,8 @@ INDEX_HTML = """<!DOCTYPE html>
 </head>
 <body>
 <header>
-  <h1>Airport-OCR &mdash; VOBL <span id="chart" class="muted"></span></h1>
-  <div class="sub">Kempegowda International Airport Bengaluru &middot; provisional, research-only view</div>
+  <h1 id="airport-title">Airport-OCR <span id="chart" class="muted"></span></h1>
+  <div class="sub" id="airport-sub">Loading airport data&hellip;</div>
 </header>
 <div class="banner" id="banner">Non-operational. Not authoritative aeronautical data. Do not use for navigation.</div>
 <main>
@@ -95,7 +95,7 @@ INDEX_HTML = """<!DOCTYPE html>
         <option value="runway_threshold">runway_threshold</option>
         <option value="runway_threshold_connector">runway_threshold_connector</option>
       </select>
-      <input id="designator" placeholder="designator e.g. 09L" size="12" />
+      <input id="designator" placeholder="designator e.g. first runway" size="18" />
       <input id="bbox" placeholder="bbox minLon,minLat,maxLon,maxLat" size="30" />
       <button id="search-btn">Search</button>
       <span class="muted" id="search-count"></span>
@@ -129,29 +129,40 @@ function kv(k, v) {
 let FEATURES = null;
 
 async function loadAirport() {
-  const a = (await getJSON("/api/airport")).airport;
-  $("chart").textContent = "";
+  const normalized = await getJSON("/api/airport");
+  const a = normalized.airport;
+  const extraction = normalized.extraction || { status: "NOT_REPORTED" };
+  document.title = `Airport-OCR — ${a.icao} (non-operational)`;
+  $("airport-title").innerHTML = `Airport-OCR &mdash; ${esc(a.icao)} <span id="chart" class="muted"></span>`;
+  $("airport-sub").textContent = a.name + " · provisional, research-only view";
   const arp = a.arp.coordinates;
   $("airport-card").innerHTML =
     kv("ICAO", a.icao) +
     kv("Name", a.name) +
+    kv("Name provenance", (a.name_provenance || {}).status || "not reported") +
+    kv("Extraction", extraction.status) +
     kv("ARP (lon, lat)", arp[0].toFixed(6) + ", " + arp[1].toFixed(6)) +
     kv("ARP source", a.arp.source.latitude + " " + a.arp.source.longitude) +
     kv("CRS", a.arp.crs + " (" + a.arp.axis_order + ")");
 
   const e = a.elevation;
+  const isConflict = e.conflict_status === "OPEN_EFFECTIVE_EDITION_RECONCILIATION_REQUIRED";
   let claims = e.claims.map((c) =>
     `<div class="kv"><span class="k">${esc(c.source_text)}</span><span class="v">${esc(c.value)} ${esc(c.unit)}</span></div>`
   ).join("");
+  $("elev-card").className = "card " + (isConflict ? "conflict" : "");
   $("elev-card").innerHTML =
-    `<div class="row"><span class="pill warn">CONFLICT</span> <span class="muted">selected: none</span></div>` +
+    `<div class="row"><span class="pill ${isConflict ? "warn" : "ok"}">${isConflict ? "CONFLICT" : "SOURCE CLAIM"}</span>` +
+    ` <span class="muted">selected: ${e.selected_value == null ? "none" : esc(e.selected_value)}</span></div>` +
     claims +
     `<div class="muted" style="margin-top:6px">${esc(e.conflict_status)}</div>`;
 }
 
 function collBadge(node, label) {
-  const blocked = node.completeness_status && node.completeness_status.indexOf("BLOCKED") === 0;
-  const cls = blocked ? "bad" : "ok";
+  const status = node.completeness_status || "NOT_REPORTED";
+  const blocked = status.indexOf("BLOCKED") === 0;
+  const review = status.indexOf("PENDING") >= 0 || status.indexOf("CANDIDATE") >= 0 || status.indexOf("PARTIAL") >= 0;
+  const cls = blocked ? "bad" : (review ? "warn" : "ok");
   const semantics = node.empty_array_semantics ? ` <span class="muted">(${esc(node.empty_array_semantics)})</span>` : "";
   return `<div class="kv"><span class="k">${esc(label)}</span>` +
     `<span class="v"><span class="pill ${cls}">${esc(node.completeness_status)}</span></span></div>` +
@@ -171,12 +182,16 @@ async function loadRunways() {
   for (const r of n.runways) {
     for (const d of r.directions) {
       const t = d.threshold;
+      const tdz = t.tdz_elevation.value == null ? "n/a" : `${esc(t.tdz_elevation.value)} ${esc(t.tdz_elevation.unit)}`;
+      const dims = r.declared_length.value == null || r.declared_width.value == null
+        ? "not extracted"
+        : `${esc(r.declared_length.value)}&times;${esc(r.declared_width.value)} ${esc(r.declared_width.unit)}`;
       rows += `<tr><td>${esc(d.designator)}</td>` +
         `<td>${esc(r.designator_pair)}</td>` +
         `<td>${t.position.coordinates[1].toFixed(6)}, ${t.position.coordinates[0].toFixed(6)}</td>` +
         `<td>${esc(t.elevation.value)} ${esc(t.elevation.unit)}</td>` +
-        `<td>${esc(t.tdz_elevation.value)} ${esc(t.tdz_elevation.unit)}</td>` +
-        `<td>${esc(r.declared_length.value)}&times;${esc(r.declared_width.value)} ${esc(r.declared_width.unit)}</td></tr>`;
+        `<td>${tdz}</td>` +
+        `<td>${dims}</td></tr>`;
     }
   }
   $("runways").innerHTML =
@@ -187,7 +202,7 @@ async function loadRunways() {
 async function loadValidation() {
   const r = await getJSON("/api/validation");
   const c = r.counts || {};
-  const statusCls = r.status === "FAIL" ? "bad" : "ok";
+  const statusCls = r.status === "FAIL" ? "bad" : (r.status === "PASS" ? "ok" : "warn");
   $("val-card").innerHTML =
     `<div class="row"><span class="pill ${statusCls}">${esc(r.status)}</span></div>` +
     kv("PASS", c.PASS || 0) +
