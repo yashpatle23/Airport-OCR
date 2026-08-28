@@ -22,7 +22,7 @@ five requested aerodrome-chart groups.
 
 Open:
 
-<https://colab.research.google.com/github/yashpatle23/Airport-OCR/blob/feat/multi-airport-upload/notebooks/Airport_OCR_Full_Pipeline.ipynb>
+<https://colab.research.google.com/github/yashpatle23/Airport-OCR/blob/4f180eca52dcbe1d35314b68e8c31ee14bf35056/notebooks/Airport_OCR_Full_Pipeline.ipynb>
 
 Then:
 
@@ -76,7 +76,7 @@ expected blockers rather than being hidden by the zero-failure count.
 ```bash
 git clone https://github.com/yashpatle23/Airport-OCR.git
 cd Airport-OCR
-git switch feat/multi-airport-upload
+git checkout 4f180eca52dcbe1d35314b68e8c31ee14bf35056  # immutable reviewed implementation
 python -m pip install -e ".[dev]"
 python scripts/demo.py
 ```

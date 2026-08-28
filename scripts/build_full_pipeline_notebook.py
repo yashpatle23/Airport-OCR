@@ -63,7 +63,7 @@ The notebook extracts only:
         code(
             "install",
             """%pip -q install pymupdf matplotlib google-generativeai
-%pip -q install --force-reinstall "git+https://github.com/yashpatle23/Airport-OCR.git@feat/multi-airport-upload"
+%pip -q install --force-reinstall "git+https://github.com/yashpatle23/Airport-OCR.git@4f180eca52dcbe1d35314b68e8c31ee14bf35056"
 
 import airport_ocr
 print('airport_ocr', airport_ocr.__version__, '| operational_use =', airport_ocr.OPERATIONAL_USE)

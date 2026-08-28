@@ -2,7 +2,7 @@
 
 Turn aerodrome-chart PDFs into validated, normalized, searchable research data — safely.
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yashpatle23/Airport-OCR/blob/feat/multi-airport-upload/notebooks/Airport_OCR_Full_Pipeline.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yashpatle23/Airport-OCR/blob/4f180eca52dcbe1d35314b68e8c31ee14bf35056/notebooks/Airport_OCR_Full_Pipeline.ipynb)
 
 **Recommended:** open the [full upload-first Colab pipeline](notebooks/Airport_OCR_Full_Pipeline.ipynb),
 choose **Upload PDF**, tick the permission acknowledgement, and upload one
