@@ -11,9 +11,10 @@ Companion docs: [`PRD.md`](PRD.md) · [`Architecture.md`](Architecture.md) ·
 - **Repo:** `yashpatle23/Airport-OCR`
 - **Working clone:** `/projects/sandbox/Airport-OCR-clone`
 - **Branch:** `feat/multi-airport-upload` (created from `feat/airport-ocr-poc`).
-- **Current task:** implementation committed as
-  `4f180eca52dcbe1d35314b68e8c31ee14bf35056`; notebook/docs are pinned to
-  that immutable target; push, smoke test, and review link remain.
+- **Current task:** delivered on `feat/multi-airport-upload`; reviewed
+  implementation `4f180eca52dcbe1d35314b68e8c31ee14bf35056` is the immutable
+  notebook/install target.
+- **Review:** [PR #3](https://github.com/yashpatle23/Airport-OCR/pull/3).
 - **Tests:** **94/94 passing** with rights-safe VOMM, profile/header isolation,
   strict list/coordinate/provenance/numeric handling, controlled CLI errors, and
   cross-layer partial-status coverage.
@@ -109,9 +110,9 @@ JSON/GeoJSON → search/package/report → artifact ZIP`
 - Hardened terminal-axis DMS, source-byte/SHA provenance, numeric-domain checks,
   and ordinary CLI file/JSON errors so malformed input fails closed without
   traceback or misleading PASS output.
-- Remaining delivery step: push the branch, smoke-test the immutable Colab/install
-  target, and open/update PR. The reviewed implementation target is
-  `4f180eca52dcbe1d35314b68e8c31ee14bf35056`.
+- Delivery complete: branch pushed, immutable GitHub commit/notebook paths
+  verified, exact Git install target resolved as `airport-ocr 0.2.0`, and
+  [PR #3](https://github.com/yashpatle23/Airport-OCR/pull/3) opened.
 
 ### 2026-08-19 — Multi-airport + upload-first implementation (in progress)
 - Investigated old VOBL-specific assumptions and the supplied VOMM chart.
