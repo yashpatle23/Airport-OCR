@@ -29,15 +29,18 @@ PDF → Extract → Identify → Structure → Search
 
 ## 2. Goals
 
-1. Convert a single aerodrome chart PDF into validated, normalized JSON + GeoJSON.
+1. Accept an uploaded, permitted aerodrome-chart PDF and convert supported
+   native-text layouts into validated, normalized JSON + GeoJSON.
 2. Extract five feature groups: **airport identity, runways, taxiways, runway
    holding positions, coordinates/elevation**.
 3. Make the structured output **searchable** (by feature type, airport,
    designator, bounding box).
 4. Make **trust explicit**: every field carries provenance and a completeness
    status; conflicts are preserved, never silently resolved.
-5. Ship a reproducible demo (Colab notebook + local CLI + offline web UI) plus an
-   optional **AI paraphrase** of the structured package.
+5. Safely diagnose scanned or unsupported layouts instead of emitting facts from
+   another airport/profile; partial extraction must remain visibly partial.
+6. Ship a reproducible upload-first demo (Colab notebook + local CLI + offline
+   web UI) plus an optional **AI paraphrase** of the structured package.
 
 ## 3. Non-goals (explicitly out of scope)
 
@@ -75,21 +78,32 @@ PDF → Extract → Identify → Structure → Search
 - **Preserve elevation conflicts unselected** (e.g. VOBL `3003 ft` vs `3001 FT`).
 - Distinguish `NOT_EXTRACTED_NOT_ABSENT` from "the airport has none".
 
-### FR-4 Native PDF text extraction
-- Convert a PyMuPDF `page.get_text("words")` dump into observations: airport
-  header, ARP, elevation, the runway table, and the full taxiway inventory
-  (with widths) from the runway-pavement legend.
+### FR-4 Multi-layout native PDF text extraction
+- Accept a page-aware PyMuPDF `page.get_text("words")` dump and preserve page/
+  bbox evidence.
+- Detect airport identity, ARP, elevation, arbitrary reciprocal runway pairs,
+  explicit runway dimensions, and supported taxiway legends/references.
+- Keep adapters independent (header, runway table, dimensions, taxiways); no
+  airport name, runway designator, dimension, or external claim may be globally
+  hard-coded.
+- Stop with `UNSUPPORTED_SCANNED_PDF_OCR_REQUIRED` when no native text exists;
+  unknown layouts produce explicit partial/blocker statuses, never VOBL defaults.
 
 ### FR-5 Runway holding positions (review-only)
-- Produce **candidate** holding positions from black-linework vector clustering,
-  each marked `NEEDS_REVIEW`. Accepted holding set stays
-  `BLOCKED_SOURCE_BYTES_REQUIRED` until reviewed.
+- Produce **candidate** holding positions from page-qualified black-linework
+  vector clustering, each marked `NEEDS_REVIEW`.
+- Accepted holding positions remain `NOT_EXTRACTED_NOT_ABSENT` /
+  `BLOCKED_LAYOUT_OR_REVIEW_REQUIRED` until qualified review; candidate geometry
+  must never be promoted automatically.
 
 ### FR-6 Exports & search
 - Normalized JSON + RFC 7946 GeoJSON `FeatureCollection`.
 - Search by `feature_type`, `airport`, `designator`, `bbox`.
 
 ### FR-7 Interfaces
+- **Full Colab**: upload button by default; optional explicit VOBL sample URL;
+  preserve original filename, derive a SHA-qualified run ID, scan all pages, use
+  dynamic airport/runway/map/search values, and download one complete artifact ZIP.
 - **CLI**: `intake`, `process`, `search`, `serve`, `extract-pdf-words`.
 - **Web app**: stdlib HTTP API + offline browser UI (no external assets/network).
 - **Report**: `render_html(package, ai_text)` → self-contained styled HTML card.
@@ -107,16 +121,26 @@ PDF → Extract → Identify → Structure → Search
 
 ## 7. Success metrics / acceptance
 
-- End-to-end Colab run completes `PDF → … → Search` on VOBL and writes JSON,
-  GeoJSON, and `vobl_report.html`.
-- Validation returns `PASS_WITH_EXPECTED_BLOCKERS` with **0 real failures**.
-- All five feature groups represented (with honest statuses where blocked).
-- Elevation conflict preserved (not auto-resolved).
-- Full test suite green (`pytest`).
+- Full Colab defaults to **Upload PDF**, accepts exactly one valid PDF, and writes
+  a SHA-qualified artifact ZIP without renaming the source to VOBL.
+- The VOBL regression profile still extracts 09L/27R, 09R/27L and 43 taxiways.
+- A VOMM-like native-text dump extracts ICAO VOMM, ARP
+  `[80.1736036111, 12.9950988889]`, 54 FT elevation, and reciprocal pairs
+  `07/25` and `12/30` without injecting Bengaluru/VOBL facts.
+- Validation returns **0 real failures** for supported required fields; missing
+  optional dimensions/TDZ/taxiway widths remain expected blockers.
+- Scanned/unsupported PDFs stop or emit a diagnostic rather than misleading
+  normalized data.
+- All five feature groups are represented with honest completeness/review states.
+- Full existing test suite remains green (`pytest`).
 
-## 8. Case study
+## 8. Case studies
 
-Kempegowda International Airport, Bengaluru — **VOBL**, Aerodrome Chart
-`AD 2 VOBL 1-101` (AMDT 06/2025). Two runway pairs (09L/27R, 09R/27L,
-4000×45 m), 43 taxiways (B3 = 15 m, rest 23 m), ARP
-13°11′56″N 077°42′20″E → `[77.7055555556, 13.1988888889]`.
+1. **VOBL — Bengaluru:** `AD 2 VOBL 1-101`; 09L/27R and 09R/27L,
+   4000×45 m; 43 legend-derived taxiways; ARP
+   `[77.7055555556, 13.1988888889]`; separate 3003/3001 FT claims remain an
+   unresolved conflict in the explicit VOBL sample profile.
+2. **VOMM — Chennai:** attached `AD 2 VOMM 1-101`; 07/25 and 12/30; ARP
+   `12°59′42.356″N 080°10′24.973″E` →
+   `[80.1736036111, 12.9950988889]`; 54 FT; taxiway references from hot-spot text
+   are candidate-grade and holding markings remain review-only.

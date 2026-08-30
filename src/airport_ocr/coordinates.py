@@ -76,10 +76,18 @@ def parse_dms(source: str, axis: str) -> "tuple[Decimal, DMSComponents]":
         raise CoordinateError(f"Minutes and seconds must be < 60: {source!r}")
 
     if axis == "latitude":
-        if hemisphere not in ("N", "S") or degrees > 90:
+        if (
+            hemisphere not in ("N", "S")
+            or degrees > 90
+            or (degrees == 90 and (minutes != 0 or seconds != 0))
+        ):
             raise CoordinateError(f"Invalid latitude: {source!r}")
     else:
-        if hemisphere not in ("E", "W") or degrees > 180:
+        if (
+            hemisphere not in ("E", "W")
+            or degrees > 180
+            or (degrees == 180 and (minutes != 0 or seconds != 0))
+        ):
             raise CoordinateError(f"Invalid longitude: {source!r}")
 
     value = Decimal(degrees) + Decimal(minutes) / Decimal(60) + seconds / Decimal(3600)

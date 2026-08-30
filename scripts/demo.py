@@ -107,10 +107,12 @@ def main() -> int:
         print(f"source          : native text from {args.pdf}")
         pages, doc = words_from_pdf(args.pdf)
         print(f"pages           : {len(pages)}  | words on page 0: {len(pages[0]['words'])}")
-        observations = extract_from_words(pages, dataset_id="vobl-demo-pdf")
+        observations = extract_from_words(pages, dataset_id="vobl-demo-pdf", profile="vobl-sample")
     else:
         print(f"source          : bundled real word-sample ({SAMPLE.name})")
-        observations = extract_from_words(json.loads(SAMPLE.read_text()), dataset_id="vobl-demo-sample")
+        observations = extract_from_words(
+            json.loads(SAMPLE.read_text()), dataset_id="vobl-demo-sample", profile="vobl-sample"
+        )
 
     print(f"airport (ICAO)  : {observations['airport_icao']}")
     print(f"runway pairs    : {[r['designator_pair'] for r in observations['runways']]}")

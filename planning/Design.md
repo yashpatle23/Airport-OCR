@@ -51,8 +51,9 @@
 | Footer text | `#9a3412` | Caveat copy |
 | Footer border | `#fed7aa` | Footer top border |
 
-> The **elevation-conflict** highlight uses the warn tokens to draw the eye to
-> the preserved-but-unresolved `3003 ft` vs `3001 ft` value.
+> The **elevation-state** tile uses warn tokens only for a real unresolved
+> multi-claim conflict. A VOMM single-source 54 FT claim is shown as a normal
+> source claim; the UI must not label every airport as conflicted.
 
 ### Domain color reference (data, not UI theme)
 These come from the chart's own marking legend and are **documented, not
@@ -89,7 +90,9 @@ lights `#bf00ff`. See [`Architecture.md`](Architecture.md) §6.
   `h3` section labels.
 - **Runway table:** full-width, collapsed borders, right-aligned numeric columns
   (`td.num`).
-- **Taxiway chips (`.chip`):** pill tags on a light surface for the 43 designators.
+- **Taxiway chips (`.chip`):** tags for whatever designators were extracted;
+  the adjacent completeness text must distinguish a full width legend from
+  candidate-only `TWY` references. Never imply a candidate list is complete.
 - **AI/narrative panel (`.aoc-ai`):** distinct light background; renders the
   paraphrase (or deterministic summary) as escaped text.
 - **Footer (`.aoc-foot`):** warm amber caveat bar — the non-operational /
@@ -109,7 +112,22 @@ lights `#bf00ff`. See [`Architecture.md`](Architecture.md) §6.
 - All dynamic values are HTML-escaped ([`Rules.md`](Rules.md) §4.2); styling must
   never require enabling scripts or inline event handlers.
 
-## 7. Change policy
+## 7. Colab interaction design
+
+- **Default control:** `SOURCE_MODE = Upload PDF`; the browser-native upload
+  button must be immediately visible after the permission acknowledgement.
+- **Two modes only:** upload or explicit VOBL sample. Never silently replace a
+  failed download with a differently named source.
+- **Progressive trust display:** show original filename, SHA-256, detected ICAO,
+  extraction status/issues, validation counts, and review-only candidate count.
+- **Dynamic language:** all labels/output names derive from the uploaded source
+  and detected airport; no `VOBL`, `09L`, Bengaluru bbox, or `vobl_*` generic UI.
+- **Single download:** one SHA-qualified ZIP avoids multiple browser prompts and
+  contains all evidence/diagnostic/report artifacts.
+- **Unsupported state:** scanned/unknown required layouts show an actionable
+  explanation rather than an empty report.
+
+## 8. Change policy
 
 If you restyle a surface, update **both** the code and this doc's token tables in
 the same change, and keep the palette within the existing slate + semantic set

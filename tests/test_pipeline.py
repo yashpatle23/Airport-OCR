@@ -80,3 +80,54 @@ def test_pipeline_missing_top_level_key_raises(observation_document):
     del broken["runways"]
     with pytest.raises(PipelineError):
         normalize(broken)
+
+
+
+def test_pipeline_reports_missing_bearing_without_type_error(observation_document):
+    tampered = copy.deepcopy(observation_document)
+    tampered["runways"][0]["directions"][0]["displayed_direction"]["value"] = None
+    _, _, report = normalize(tampered)
+    assert report["status"] == "FAIL"
+    assert any(
+        check["id"] == "runway_direction.09L.displayed_direction"
+        and check["status"] == "FAIL"
+        for check in report["checks"]
+    )
+
+
+
+def test_pipeline_wraps_invalid_threshold_dms_as_pipeline_error(observation_document):
+    tampered = copy.deepcopy(observation_document)
+    tampered["runways"][0]["directions"][0]["threshold"]["latitude_source"] = "99°00'00\" N"
+    with pytest.raises(PipelineError, match="Invalid threshold coordinates for 09L"):
+        normalize(tampered)
+
+
+
+def test_source_bytes_require_explicit_availability_and_valid_sha(observation_document):
+    unavailable = copy.deepcopy(observation_document)
+    unavailable["source"]["original_bytes_available"] = False
+    unavailable["source"]["sha256"] = "a" * 64
+    _, _, unavailable_report = normalize(unavailable)
+    unavailable_check = next(
+        check for check in unavailable_report["checks"] if check["id"] == "source.original_bytes"
+    )
+    assert unavailable_check["status"] == "EXPECTED_BLOCKER"
+
+    invalid_digest = copy.deepcopy(observation_document)
+    invalid_digest["source"]["original_bytes_available"] = True
+    invalid_digest["source"]["sha256"] = "not-a-sha256"
+    _, _, invalid_report = normalize(invalid_digest)
+    invalid_check = next(
+        check for check in invalid_report["checks"] if check["id"] == "source.original_bytes"
+    )
+    assert invalid_check["status"] == "EXPECTED_BLOCKER"
+
+    available = copy.deepcopy(observation_document)
+    available["source"]["original_bytes_available"] = True
+    available["source"]["sha256"] = "a" * 64
+    _, _, available_report = normalize(available)
+    available_check = next(
+        check for check in available_report["checks"] if check["id"] == "source.original_bytes"
+    )
+    assert available_check["status"] == "PASS"

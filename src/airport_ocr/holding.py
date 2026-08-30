@@ -111,7 +111,8 @@ def holding_candidates(
     segments: Sequence[Segment],
     taxiway_labels: Sequence[Dict[str, Any]],
     *,
-    airport_icao: str = "VOBL",
+    airport_icao: str = "UNKNOWN",
+    page_number: int = 0,
     page_size: Optional[Sequence[float]] = None,
     cell: float = 14.0,
     min_segments: int = 4,
@@ -141,9 +142,10 @@ def holding_candidates(
         suffix = f"{designator}#{seq}" if designator else f"unassociated#{seq}"
         features.append(
             {
-                "feature_id": f"holding-candidate:{airport_icao}:{suffix}",
+                "feature_id": f"holding-candidate:{airport_icao}:p{page_number + 1}:{suffix}",
                 "feature_type": "runway_holding_position_candidate",
                 "status": "NEEDS_REVIEW",
+                "page": page_number,
                 "page_point": {"x": cluster["x"], "y": cluster["y"], "space": "pdf_page"},
                 "page_bbox": cluster["bbox"],
                 "segment_count": cluster["segment_count"],
@@ -170,6 +172,7 @@ def holding_candidates(
         "operational_use": False,
         "detector": {
             "method": "grid connected-component clustering of black marking segments",
+            "page_number": page_number,
             "page_size": list(page_size) if page_size else None,
             "params": {
                 "cell": cell,

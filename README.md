@@ -1,187 +1,228 @@
 # Airport-OCR
 
-Turn aerodrome-chart observations into validated, normalized, searchable data — safely.
+Turn aerodrome-chart PDFs into validated, normalized, searchable research data — safely.
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yashpatle23/Airport-OCR/blob/feat/airport-ocr-poc/notebooks/Airport_OCR_Full_Pipeline.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yashpatle23/Airport-OCR/blob/4f180eca52dcbe1d35314b68e8c31ee14bf35056/notebooks/Airport_OCR_Full_Pipeline.ipynb)
 
-**Full end-to-end pipeline (recommended):** the [full-pipeline Colab notebook](notebooks/Airport_OCR_Full_Pipeline.ipynb)
-does everything — downloads `VOBL-ADC.pdf`, extracts all five feature groups
-(airport, runways, taxiways, runway holding positions, coordinates/elevation),
-structures them into JSON/GeoJSON, searches, and writes a summary (deterministic,
-plus an optional AI paraphrase). Flow: `PDF → Extract → Identify → Structure → Search`.
+**Recommended:** open the [full upload-first Colab pipeline](notebooks/Airport_OCR_Full_Pipeline.ipynb),
+choose **Upload PDF**, tick the permission acknowledgement, and upload one
+native-text aerodrome chart. The notebook executes:
 
-There's also a smaller [step-by-step notebook](notebooks/Airport_OCR_Colab.ipynb)
-for uploading a PDF or a PyMuPDF words dump.
-
-> **Non-operational.** This project produces research data only. Nothing here is
-> authoritative aeronautical data and it must never be used for navigation or
-> operational decisions. Extracted values remain **provisional** until the
-> original source bytes, source rights, and qualified aviation review are
-> recorded. See [`docs/`](docs/README.md).
-
-## What this is
-
-A dependency-light Python proof of concept for the target flow:
-
-```
-Source intake → observations → normalization → validation → JSON/GeoJSON → search
+```text
+PDF → Extract → Identify → Structure → Search
 ```
 
-It implements the parts of the pipeline that are safe to run today and defines
-clean, replaceable boundaries for the parts that are blocked (native PDF/vector
-parsing, OCR, computer vision, and complete taxiway / runway-holding extraction).
+It produces a single ZIP containing intake provenance, positioned words,
+observations, normalized JSON, GeoJSON, validation, a structured package,
+deterministic/optional-AI summaries, an HTML report, and review-only holding
+candidates. An explicit optional mode downloads the VOBL sample chart.
 
-The case study is the Kempegowda International Airport, Bengaluru (VOBL)
-Aerodrome Chart `AD 2 VOBL 1-101`.
+> **Non-operational / research-only.** Nothing emitted by this project is
+> authoritative aeronautical data, and it must never be used for navigation or
+> operational decisions. Uploading a PDF does not grant source rights. Every
+> result remains provisional until rights and qualified aviation review are
+> recorded.
+
+## Project documentation
+
+For a consolidated account of what was designed, implemented, tested, and
+shipped, see the [project implementation summary](docs/PROJECT_IMPLEMENTATION_SUMMARY.md).
+Detailed requirements, architecture, research, and phase records remain in
+[`planning/`](planning/) and [`docs/`](docs/).
+
+## Problem scope
+
+Aerodrome charts are visually structured PDFs containing text, tables, vector
+linework, and symbols. Airport-OCR extracts only five groups:
+
+1. airport identity;
+2. runways;
+3. taxiways;
+4. runway holding positions;
+5. airport coordinates/elevation.
+
+The project is provenance-first: source strings are retained, missing optional
+values become explicit blockers, and conflicting claims are never silently
+resolved.
 
 ## What works now
 
-- **Controlled intake** — SHA-256 digest, file-signature (magic-byte) sniffing,
-  extension-mismatch detection, and a content-addressed quarantine copy. Intake
-  records `malware_status`/`rights_status` but never pretends to scan or grant rights.
-- **Deterministic coordinate normalization** — DMS parsing with `Decimal`,
-  preserving the exact source string, emitting `OGC:CRS84` longitude/latitude.
-- **Domain validation** — ICAO format, reciprocal runway pairs, dimensions,
-  units, elevation-conflict preservation, and completeness semantics.
-- **Exports** — normalized JSON and an RFC 7946 GeoJSON `FeatureCollection`.
-- **Search** — filter the GeoJSON projection by feature type, airport, designator, and bbox.
-- **Web application** — a stdlib HTTP API and an offline browser UI (structured
-  view, elevation-conflict and blocked-collection banners, feature search, and a
-  self-contained SVG map). No third-party runtime dependencies and no external
-  assets or network calls.
-- **Native PDF text extraction** — turn a PyMuPDF `page.get_text("words")` dump
-  into observations: airport identity, ARP, elevation, the runway table, and the
-  full **taxiway inventory** (with widths) parsed from the runway-pavement legend.
+- **Upload-first Colab UX** — browser upload button, exact-one-PDF/signature gate,
+  preserved original name, SHA-qualified run ID, all-page processing, dynamic
+  search/map labels, and one complete result ZIP.
+- **Controlled intake** — SHA-256, magic-byte detection, extension mismatch, and
+  optional content-addressed quarantine. Intake records malware/rights state; it
+  never claims to scan or grant rights.
+- **Page-aware native-text extraction** — positioned PyMuPDF words retain page
+  identity. Header coordinates are associated with a unique non-runway header
+  region rather than selected globally. Independent adapters detect AAI-style
+  chart IDs/titles, ARP, `AD ELEV` variants, arbitrary runway rows, explicit
+  physical dimensions, strict width-first taxiway lists, and explicit `TWY X`
+  references.
+- **Airport-independent domain assembly** — dynamic reciprocal runway pairing
+  supports `07/25`, `12/30`, `09L/27R`, and other valid 01–36 L/R/C pairs.
+- **Deterministic coordinate normalization** — exact DMS parsing with `Decimal`;
+  RFC 7946/CRS84 longitude-latitude output with original strings preserved.
+- **Invariant validation** — validates ICAO, reciprocal pairs, units/ranges,
+  elevation claim state, and collection completeness—not VOBL-specific values.
+- **Taxiway honesty** — a structured width legend produces reviewed-pending
+  features; hot-spot/map text references become candidates with unknown width,
+  never a false complete inventory.
+- **Holding-position boundary** — page-qualified black-linework clusters remain
+  `NEEDS_REVIEW`; accepted positions stay blocked-not-absent.
+- **Exports/search/report** — normalized JSON, GeoJSON, attribute/bbox search,
+  self-contained safe HTML, and optional Gemini paraphrase.
+- **Offline web app** — stdlib API + dynamic browser UI + inline SVG, with no
+  third-party runtime dependencies or external UI assets.
 
-## What is intentionally NOT done
+## Honest support boundary
 
-- No OCR / PDF parsing / computer vision (blocked pending source bytes + rights).
-- No complete taxiway or runway-holding-position inventory.
-- No surveyed runway-surface geometry (runway lines are labelled threshold connectors).
-- No model training. No operational/authoritative claims.
+"Upload any airport map" means the notebook will intake and diagnose it safely;
+it does **not** mean every world-wide layout can be fully extracted today.
 
-Empty `taxiways`/`runway_holding_positions` arrays mean **NOT_EXTRACTED_NOT_ABSENT**,
-not "the airport has none". Conflicting claims (e.g. the VOBL `3003 ft` vs
-`3001 FT` elevation) are preserved unselected.
+- **Supported:** native-text AAI/ICAO-style aerodrome charts matching the current
+  deterministic adapters.
+- **Partial:** unknown optional layouts (e.g. no supported taxiway legend) retain
+  `PARTIAL`, `CANDIDATES_PENDING_REVIEW`, or
+  `BLOCKED_LAYOUT_OR_REVIEW_REQUIRED`.
+- **Stopped safely:** scanned/textless PDFs return
+  `UNSUPPORTED_SCANNED_PDF_OCR_REQUIRED`; OCR is a future adapter.
+- Declared TORA/TODA/ASDA/LDA values are **never** substituted for physical
+  runway dimensions.
+- Threshold connectors are labelled derived connectors, not surveyed runway
+  surfaces.
+
+## Case studies
+
+### VOBL — Bengaluru regression/sample profile
+
+`AD 2 VOBL 1-101`: 09L/27R and 09R/27L; 43 width-legend taxiways; ARP
+`[77.7055555556, 13.1988888889]`. The explicit sample profile preserves the
+separate 3003/3001 FT elevation claims unresolved.
+
+### VOMM — Chennai multi-layout check
+
+The attached `AD 2 VOMM 1-101` layout exercises a different title/elevation
+format, runways 07/25 and 12/30, one THR-elevation column (no TDZ column),
+separate declared-distance data, explicit hot-spot `TWY` references, and
+cartographic holding symbols. The committed rights-safe synthetic check produces:
+
+- ARP `[80.1736036111, 12.9950988889]` from
+  `12°59′42.356″N 080°10′24.973″E`;
+- 54 FT single-source elevation;
+- 07/25 (3658×45 m) and 12/30 (2890×45 m);
+- threshold elevations 43/54/44/48 FT;
+- missing TDZ/taxiway widths as expected blockers, not fabricated values.
+
+This is a structural regression from a committed, rights-safe synthetic
+positioned-word fixture shaped from the supplied chart image; it is not an
+operational dataset or a substitute for running the original permitted PDF.
+Extraction remains visibly `PARTIAL` because TDZ values, complete taxiway
+inventory/widths, and accepted holding geometry are unavailable.
 
 ## Install
 
 ```bash
-python -m pip install -e ".[dev]"   # editable install with test deps
-# or run without installing:
-export PYTHONPATH=src
+python -m pip install -e ".[dev]"
+# or: export PYTHONPATH=src
 ```
 
-Requires Python 3.9+. Runtime has **no third-party dependencies**.
+Core requires Python 3.9+ and has **zero third-party runtime dependencies**.
+PyMuPDF, matplotlib, and Gemini are optional notebook/adaptor dependencies.
 
-## Usage
+## CLI usage
 
 ```bash
-# Inspect (and optionally quarantine) an untrusted source file
-airport-ocr intake path/to/chart.pdf --quarantine-dir quarantine --manifest out/intake.json
+# Inspect an untrusted source
+airport-ocr intake chart.pdf --manifest out/intake.json
 
-# Normalize + validate the provisional VOBL observation fixture
-airport-ocr process examples/vobl-bootstrap-observations.json --output-dir out
+# Produce a PyMuPDF words dump outside the zero-dependency core, then extract
+airport-ocr extract-pdf-words chart-words.json \
+  --metadata out/intake.json --output out/observations.json
 
-# Search the generated GeoJSON projection
+# Normalize, validate, export, search
+airport-ocr process out/observations.json --output-dir out
 airport-ocr search out/features.geojson --feature-type runway_threshold
-airport-ocr search out/features.geojson --designator 09L
-airport-ocr search out/features.geojson --bbox 77.70,13.19,77.71,13.20
+airport-ocr search out/features.geojson --designator 07
+airport-ocr search out/features.geojson --bbox 80.15,12.98,80.20,13.02
 
-# Extract observations from a native PDF word dump (PyMuPDF words)
-airport-ocr extract-pdf-words examples/vobl-words-sample.json --output out/vobl.json
-airport-ocr process out/vobl.json --output-dir out
-
-# Run the web application (API + browser UI) and open http://127.0.0.1:8000
-airport-ocr serve examples/vobl-from-pdf-observations.json --port 8000
+# Offline app
+airport-ocr serve out/observations.json --port 8000
 ```
 
-### Native PDF text extraction
+`extract-pdf-words` defaults to `profile=auto`. `--profile vobl-sample` is only
+for the VOBL regression chart, must be selected explicitly, and refuses non-VOBL
+input. Missing metadata never activates compatibility facts. Optional external
+elevation claims are explicit CLI/user inputs; generic mode never injects one.
 
-Produce the words dump on a machine that has PyMuPDF and the source PDF:
+Produce a page-aware words dump with PyMuPDF:
 
 ```python
-import fitz, json           # PyMuPDF
-doc = fitz.open("VOBL-ADC.pdf")
-pages = [{"page": i, "size": [p.rect.width, p.rect.height], "words": p.get_text("words")}
-         for i, p in enumerate(doc)]
-json.dump(pages, open("vobl_words.json", "w"))
+import json, pymupdf
+
+doc = pymupdf.open("airport-chart.pdf")
+pages = [
+    {"page": i, "size": [p.rect.width, p.rect.height], "words": p.get_text("words")}
+    for i, p in enumerate(doc)
+]
+json.dump(pages, open("chart-words.json", "w"))
 ```
 
-Then extract and validate locally (no PDF library needed downstream):
-
-```bash
-airport-ocr extract-pdf-words vobl_words.json --output out/vobl.json
-airport-ocr process out/vobl.json --output-dir out
-```
-
-`extract-pdf-words` recovers the airport header, the four runway threshold rows,
-and the **43 VOBL taxiways** (B3 = 15 m, the rest 23 m) from the legend. Runway
-holding positions stay `BLOCKED_SOURCE_BYTES_REQUIRED` because distinct
-identifiers/associations need the marking-geometry layer, not the word stream.
-
-### Web application
-
-`airport-ocr serve <observations.json>` starts a local, non-operational web app.
-
-UI (`GET /`): airport identity and ARP, the preserved `3003 ft` vs `3001 ft`
-elevation conflict, blocked taxiway / runway-holding collections, a runway
-table, a searchable feature list, an inline SVG map of the ARP and runway
-thresholds, and the full validation report.
-
-JSON API:
+## Web API
 
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/health` | liveness + dataset identity |
-| GET | `/api/airport` | normalized airport/runway/collections document |
+| GET | `/api/airport` | normalized airport/runways/collections |
 | GET | `/api/features` | GeoJSON `FeatureCollection` |
 | GET | `/api/validation` | validation report |
-| GET | `/api/search` | filtered GeoJSON (`feature_type`, `airport`, `designator`, `bbox`) |
-| POST | `/api/process` | normalize a posted observation document (stateless) |
+| GET | `/api/search` | filters: `feature_type`, `airport`, `designator`, `bbox` |
+| POST | `/api/process` | stateless observation normalization |
 
-```bash
-curl http://127.0.0.1:8000/api/health
-curl "http://127.0.0.1:8000/api/search?feature_type=runway_threshold"
-curl -X POST --data-binary @examples/vobl-bootstrap-observations.json \
-  http://127.0.0.1:8000/api/process
-```
+The browser title/name/elevation state is now data-driven; it no longer displays
+VOBL/Bengaluru for another airport.
+
+## Exit codes
 
 `airport-ocr process` exits `0` on `PASS_WITH_EXPECTED_BLOCKERS`, `1` on real
-validation failures, and (with `--fail-on-blockers`) `3` while expected blockers
-remain — useful for strict CI gates.
-
-You can also run it as a module: `python -m airport_ocr ...`.
+validation failures, and `3` under `--fail-on-blockers` while expected blockers
+remain.
 
 ## Project layout
 
+```text
+src/airport_ocr/       intake, page-aware extraction, validation, exports, search, UI
+notebooks/             upload-first Full Pipeline + smaller step-by-step notebook
+scripts/               deterministic notebook builder + local VOBL demo
+examples/              VOBL regression + rights-safe synthetic VOMM fixtures
+docs/research/         enterprise + multi-airport extraction research
+docs/architecture/     POC + multi-airport adapter/capability design
+docs/phase-0, phase-1/ governance and historical benchmark evidence
+planning/              PRD, Architecture, Rules, Phases, Design, Memory
 ```
-src/airport_ocr/   intake, coordinates, pdf_words, validation, pipeline, search, webapp, webui, CLI
-tests/             behavioral tests (pytest)
-examples/          provisional VOBL observation fixture
-docs/research/     enterprise architecture & solution research
-docs/phase-0/      governance, rights, and source-intake controls (BLOCKED)
-docs/phase-1/      discovery benchmark, results, and tool inventory (PARTIAL)
-docs/architecture/ proof-of-concept design and trust boundaries
+
+Regenerate the full notebook (do not hand-edit notebook JSON):
+
+```bash
+python scripts/build_full_pipeline_notebook.py
 ```
 
 ## Testing
 
 ```bash
-pytest
+pytest -q
 ```
 
-## Status and blockers
+## Status / next boundary
 
-- **Phase 0 (governance/source access):** BLOCKED — original PDF bytes/hash,
-  source rights, and named accountable owners are required.
-- **Phase 1 (discovery benchmark):** PARTIAL — deterministic normalization is
-  complete; PDF/OCR/CV benchmarking and complete taxiway/holding extraction are blocked.
-
-See [`docs/phase-0/PHASE_0_EXIT_REPORT.md`](docs/phase-0/PHASE_0_EXIT_REPORT.md)
-and [`docs/phase-1/PHASE_1_EXIT_REPORT.md`](docs/phase-1/PHASE_1_EXIT_REPORT.md).
+The deterministic native-text multi-layout increment is implemented. Complete
+OCR/CV, complete taxiway map-label extraction, accepted holding geometry, source
+rights, and an accountable SME review workflow remain future/gated work. See
+[`planning/`](planning/), the
+[multi-airport design](docs/architecture/MULTI_AIRPORT_DESIGN.md), and the
+[multi-airport research](docs/research/MULTI_AIRPORT_EXTRACTION_RESEARCH.md).
 
 ## License
 
-Code is MIT licensed. It does **not** grant rights to any aeronautical source
-charts or AIP/eAIP material — see [`LICENSE`](LICENSE) and `docs/phase-0`.
+Code is MIT licensed. It does **not** grant rights to source charts or AIP/eAIP
+material; see [`LICENSE`](LICENSE) and `docs/phase-0`.

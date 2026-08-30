@@ -63,6 +63,7 @@ class IntakeResult:
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "operational_use": self.operational_use,
             "source_path": self.source_path,
+            "original_bytes_available": True,
             "sha256": self.sha256,
             "byte_size": self.byte_size,
             "detected_media_type": self.detected_media_type,

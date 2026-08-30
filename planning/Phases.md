@@ -1,145 +1,105 @@
 # Phases — Airport-OCR
 
-> The project broken into shippable stages. Each phase has a goal, concrete
-> deliverables, and an exit gate. Status reflects reality as of the last
-> [`Memory.md`](Memory.md) update. Legend: ✅ done · 🟡 partial · ⛔ blocked · ⬜ planned.
-
----
+> Shippable stages with honest gates. ✅ done · 🟡 partial · ⛔ blocked · ⬜ planned.
 
 ## Phase 0 — Governance & source access ⛔ BLOCKED
 
-**Goal:** establish the rights, provenance, and review controls that make any
-extraction defensible before parsing a real chart.
+**Goal:** rights, provenance, and accountable review controls.
 
-**Deliverables**
-- Governance charter, decision register, quality/acceptance & review policy.
-- Source register + rights manifest; controlled intake (SHA-256, signature
-  sniff, quarantine).
-- Gold-corpus policy.
+**Done:** governance charter, decision/quality policies, controlled intake,
+source register, gold-corpus policy. VOBL SHA-256 is recorded.
 
-**Exit gate:** original PDF bytes + hash recorded, **source rights confirmed**,
-and named accountable owners in place.
+**Exit gate:** rights confirmed and named accountable owners/reviewers.
 
-**Status:** BLOCKED — SHA-256 recorded
-(`ef0541fca479c35eb9d47208fddf12d59c011294e047ebfa5c4ac55dc060bf05`), but source
-**rights are unconfirmed** and `original_bytes_available` stays `False`.
-Governance docs live in `docs/phase-0/`.
+**Still blocked:** AIP/eAIP processing/publication rights remain unconfirmed.
+Uploading a file does not close this gate.
 
----
+## Phase 1 — Deterministic domain core ✅ DONE (within research scope)
 
-## Phase 1 — Discovery benchmark & deterministic core 🟡 PARTIAL
+**Goal:** source-preserving normalization, validation, JSON/GeoJSON, search.
 
-**Goal:** prove the safe-to-run spine — deterministic normalization, validation,
-exports, search — and benchmark discovery scope.
+**Delivered:** `coordinates.py`, `pipeline.normalize`, `validation.py`, RFC 7946
+exports, attribute/bbox search, explicit blocker/conflict semantics.
 
-**Deliverables**
-- ✅ `coordinates.py` (DMS→Decimal→CRS84), `pipeline.normalize`, `validation.py`.
-- ✅ Normalized JSON + RFC 7946 GeoJSON exports.
-- ✅ `search.search_features` (feature type, airport, designator, bbox).
-- ✅ Benchmark scope, tool inventory, baseline result, validation report
-  (`docs/phase-1/`).
+**Exit gate met:** supported observations normalize deterministically with no
+real validation failures; blockers remain visible.
 
-**Exit gate:** deterministic pipeline green on the VOBL fixture with
-`PASS_WITH_EXPECTED_BLOCKERS`; PDF/OCR/CV benchmarking scoped.
+## Phase 2 — Native-text extraction adapters ✅ DONE (multi-layout increment)
 
-**Status:** PARTIAL — deterministic normalization complete; PDF/OCR/CV
-benchmarking and complete taxiway/holding extraction remain blocked on Phase 0.
+**Goal:** convert page-aware PyMuPDF words into observations without adding core
+runtime dependencies or airport-specific global defaults.
 
----
+**Delivered:**
+- chart ID/title, ARP and `AD ELEV`/`AD ELEVATION` variants;
+- arbitrary reciprocal runway pairing + source threshold rows;
+- explicit physical runway-dimension labels (never declared-distance inference);
+- VOBL width-first taxiway legend + explicit `TWY X` reference candidates;
+- page evidence, extraction profile/diagnostics, partial/unsupported states;
+- VOBL sample compatibility isolated to `vobl-sample`.
 
-## Phase 2 — Native PDF text extraction ✅ DONE (within limits)
+**Exit gate met:** VOBL regressions remain green; the committed rights-safe
+synthetic VOMM positioned-word fixture extracts VOMM/Chennai, 07/25 + 12/30,
+ARP/elevation, dimensions and THR values with 0 failures while retaining
+`PARTIAL`. Missing VOMM TDZ/taxiway widths and accepted holds remain blockers.
 
-**Goal:** turn a PyMuPDF word dump into observations without adding runtime deps.
+## Phase 3 — Holding positions 🟡 PARTIAL BY DESIGN
 
-**Deliverables**
-- ✅ `pdf_words.extract_from_words(dump, dataset_id=...)` — airport header, ARP,
-  elevation, runway table, and the **43 VOBL taxiways** (B3 = 15 m, rest 23 m)
-  from the pavement legend.
-- ✅ `extract-pdf-words` CLI subcommand.
+**Goal:** surface possible holding markings without calling them accepted data.
 
-**Exit gate:** word-dump → observations → normalize/validate round-trips green.
+**Delivered:** all-page black-linework clustering, page-qualified IDs/evidence,
+nearest known taxiway association, `NEEDS_REVIEW` candidates.
 
-**Status:** DONE. Runway holding positions intentionally stay
-`BLOCKED_SOURCE_BYTES_REQUIRED` (identifiers/associations need the marking
-geometry layer, not the word stream).
+**Exit gate remaining:** qualified SME acceptance/rejection workflow and
+point/marking geometry adjudication. Candidates cannot be promoted by code.
 
----
+## Phase 4 — Interfaces ✅ DONE
 
-## Phase 3 — Runway holding positions (review-only candidates) 🟡 PARTIAL
+**Delivered:** CLI (`intake`, `extract-pdf-words`, `process`, `search`, `serve`),
+dynamic stdlib web API/UI, self-contained SVG map, `build_package`, deterministic
+summary, escaped `render_html`, optional Gemini prompt.
 
-**Goal:** surface holding-position **candidates** from vector linework for human
-review — without ever presenting them as accepted data.
+**Multi-airport correction:** browser title/name/elevation/table are data-driven;
+no VOBL/Bengaluru UI defaults for another airport.
 
-**Deliverables**
-- ✅ `holding.holding_candidates(segments, taxiway_labels, ...)` clustering
-  black linework (`#000000`); each candidate `NEEDS_REVIEW`.
-- ✅ 25 candidates produced on the real VOBL PDF (`CANDIDATES_PENDING_REVIEW`).
+## Phase 5 — Upload-first Colab & reproducibility ✅ DONE
 
-**Exit gate:** candidates generated + clearly quarantined from the accepted set.
+**Delivered:**
+- generated full notebook (`scripts/build_full_pipeline_notebook.py`);
+- default **Upload PDF** browser button + permission acknowledgement;
+- explicit optional VOBL sample URL mode;
+- exact-one-PDF/signature/native-text gates;
+- filename + SHA-derived run ID; all-page extraction/holding;
+- dynamic search, bbox, title, map and output names;
+- complete artifact ZIP; optional Gemini with deterministic fallback.
 
-**Status:** PARTIAL by design — accepted holding set stays blocked pending
-qualified review. Color-separable markings (stop bar `#ff0000`, no-entry
-`#bf00ff`) are out of scope.
+**Exit gate met:** generated notebook JSON is deterministic/valid, contains an
+upload button and has no hard-coded `09L`/Bengaluru generic search.
 
----
+## Phase 6 — Planning/research refresh ✅ DONE
 
-## Phase 4 — Interfaces: CLI, web app, report ✅ DONE
+**Delivered:** PRD, Architecture, Rules, Phases, Design, Memory; POC +
+multi-airport architecture; multi-airport research; README/demo guidance.
 
-**Goal:** make the pipeline usable and demoable end to end.
+## Phase 7 — Verification & delivery ✅ DONE
 
-**Deliverables**
-- ✅ CLI: `intake`, `process`, `search`, `serve`, `extract-pdf-words`.
-- ✅ Offline web app: stdlib HTTP API + browser UI + inline SVG map.
-- ✅ `report.build_package`, `summarize`, `render_html(package, ai_text=None)` —
-  self-contained styled HTML card (escaped, no external assets).
+**Delivered:** 94 regressions pass; VOBL and rights-safe synthetic VOMM criteria
+are recorded; final semantic review found no high/medium issues; implementation
+commit `4f180eca52dcbe1d35314b68e8c31ee14bf35056` is the immutable Colab/install
+target; branch and [PR #3](https://github.com/yashpatle23/Airport-OCR/pull/3)
+are published.
 
-**Exit gate:** `serve` renders the VOBL package; `render_html` produces a
-shareable report; behavioral tests green.
+**Exit gate met:** full tests, compileall, diff checks, deterministic notebook,
+remote commit/notebook lookup, and exact Git installer resolution all pass.
 
-**Status:** DONE.
+## Future phases
 
----
+| Phase | Goal | Gate |
+|-------|------|------|
+| **8 — OCR/image adapter** | Detect textless scans, render safely, OCR/layout candidates behind evidence contract | approved source rights + benchmark corpus |
+| **9 — Publisher/layout profiles** | Add positively detected adapters for other chart families | diverse permitted corpus; no filename-only profile selection |
+| **10 — SME review workflow** | Accept/reject taxiway/holding candidates and adjudicate claims | roles, audit trail, bitemporal decisions |
+| **11 — Multi-airport persistence** | Versioned store and API over reviewed packages | rights per source + release policy |
+| **12 — Hardening** | resource limits, differential parsing, CI/release packaging, observability | phases 8–11 |
 
-## Phase 5 — Demo & reproducibility ✅ DONE
-
-**Goal:** one-click reproducible demo for reviewers/seniors.
-
-**Deliverables**
-- ✅ Colab: `Airport_OCR_Full_Pipeline.ipynb` (`PDF → … → Search` + summary +
-  polished `render_html`), plus step-by-step notebook.
-- ✅ `DEMO.md` + `scripts/demo.py`.
-- ✅ Optional **Gemini** AI paraphrase (`models/gemini-flash-latest`), with
-  deterministic fallback.
-
-**Exit gate:** notebook runs top-to-bottom on VOBL and writes JSON, GeoJSON, and
-`vobl_report.html`.
-
-**Status:** DONE.
-
----
-
-## Phase 6 — Planning & documentation set ✅ DONE
-
-**Goal:** capture intent, architecture, rules, staging, design, and memory so the
-project is legible to humans and AI tools across sessions.
-
-**Deliverables**
-- ✅ `planning/` : PRD, Architecture, Rules, Phases, Design, Memory.
-
-**Exit gate:** all six docs committed and pushed.
-
-**Status:** DONE (this document set).
-
----
-
-## Future phases (⬜ planned, gated on Phase 0 rights)
-
-| Phase | Goal | Blocked on |
-|-------|------|-----------|
-| **7 — OCR / CV extraction** | Symbol & geometry extraction (holding, stop bars, aprons) via OCR/computer vision behind the observation contract | Source bytes + rights (Phase 0) |
-| **8 — Multi-airport corpus** | Generalize beyond VOBL; persistent, searchable store | Rights per source; storage design |
-| **9 — Review workflow** | UI/flow for SMEs to accept/reject candidates and adjudicate conflicts | Phase 3 candidates + reviewer roles |
-| **10 — Hardening & packaging** | Perf, CI gates, release packaging, richer validation | Phases 7–9 |
-
-> No future phase may relax the safety rules in [`Rules.md`](Rules.md) §1. New
-> extraction capability increases what we *record*, never what we *assert*.
+No future phase may relax [`Rules.md`](Rules.md): capability increases what is
+recorded, never what is asserted as authoritative.

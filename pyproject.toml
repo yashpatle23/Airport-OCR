@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "airport-ocr"
-version = "0.1.0"
-description = "Non-operational proof of concept for normalizing and searching airport-chart observations."
+version = "0.2.0"
+description = "Non-operational multi-layout airport-chart extraction, normalization, and search."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { file = "LICENSE" }

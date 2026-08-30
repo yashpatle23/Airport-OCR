@@ -83,6 +83,7 @@ def build_package(
         "schema": "airport-ocr/package/1.0",
         "operational_use": False,
         "dataset_id": normalized.get("dataset_id"),
+        "extraction": normalized.get("extraction"),
         "validation": {
             "status": report.get("status"),
             "counts": report.get("counts"),
@@ -92,6 +93,7 @@ def build_package(
         "airport": {
             "icao": airport["icao"],
             "name": airport["name"],
+            "name_provenance": airport.get("name_provenance"),
             "coordinates_elevation": {
                 "arp": {
                     "coordinates_lonlat": airport["arp"]["coordinates"],
@@ -131,6 +133,13 @@ def summarize(package: Dict[str, Any]) -> str:
     lines.append("")
     lines.append(f"- **Validation:** {package['validation']['status']} "
                  f"(failures: {package['validation'].get('failure_count')})")
+    extraction = package.get("extraction") or {}
+    lines.append(
+        f"- **Extraction completeness:** {extraction.get('status', 'NOT_REPORTED')} "
+        f"(profile: {extraction.get('profile') or 'n/a'})"
+    )
+    for issue in extraction.get("issues", []):
+        lines.append(f"  - `{issue.get('code')}`: {issue.get('detail')}")
     src = package.get("source") or {}
     if src.get("chart_identifier"):
         lines.append(f"- **Source chart:** {src.get('chart_identifier')} "
@@ -142,7 +151,7 @@ def summarize(package: Dict[str, Any]) -> str:
     lines.append(f"- ICAO: `{a['icao']}`")
     lines.append(f"- ARP (lon, lat, {arp.get('crs')}): `{arp['coordinates_lonlat']}`")
     lines.append(f"  - source: {arp['latitude_source']} / {arp['longitude_source']}")
-    if len(elev["claims"]) > 1 and elev["selected_value"] is None:
+    if elev.get("conflict_status") == "OPEN_EFFECTIVE_EDITION_RECONCILIATION_REQUIRED" and elev["selected_value"] is None:
         vals = ", ".join(f"{c['value']} {c['unit']}" for c in elev["claims"])
         lines.append(f"- Aerodrome elevation: **unresolved conflict** ({vals}); "
                      f"status `{elev['conflict_status']}`")
@@ -154,16 +163,19 @@ def summarize(package: Dict[str, Any]) -> str:
     # 2. Runways
     lines.append("## Runways")
     for r in package["runways"]:
-        length = r["declared_length"]["value"]
-        width = r["declared_width"]["value"]
-        unit = r["declared_width"]["unit"]
-        lines.append(f"- **{r['designator_pair']}** — {length} × {width} {unit}")
+        length = r["declared_length"].get("value")
+        width = r["declared_width"].get("value")
+        unit = r["declared_width"].get("unit") or "M"
+        dimensions = f"{length} × {width} {unit}" if length is not None and width is not None else "dimensions not extracted"
+        lines.append(f"- **{r['designator_pair']}** — {dimensions}")
         for d in r["directions"]:
             t = d["threshold"]
             lon, lat = t["coordinates_lonlat"]
+            tdz = t["tdz_elevation"].get("value")
+            tdz_text = str(tdz) if tdz is not None else "not extracted"
             lines.append(
                 f"    - {d['designator']}: THR lat {lat:.6f} lon {lon:.6f}, "
-                f"THR {t['elevation']['value']} / TDZ {t['tdz_elevation']['value']} "
+                f"THR {t['elevation']['value']} / TDZ {tdz_text} "
                 f"{t['elevation']['unit']}"
             )
     lines.append("")
@@ -251,11 +263,18 @@ def render_html(package: Dict[str, Any], ai_text: Optional[str] = None) -> str:
     lon, lat = (arp["coordinates_lonlat"] + [None, None])[:2]
 
     val_status = val.get("status", "n/a")
-    val_ok = val.get("failure_count", 1) == 0
-    val_color = "#0f766e" if val_ok else "#b91c1c"
+    extraction = package.get("extraction") or {}
+    extraction_status = extraction.get("status", "NOT_REPORTED")
+    failure_count = val.get("failure_count", 1)
+    if failure_count:
+        val_color = "#b91c1c"
+    elif val_status == "PASS" and extraction_status == "COMPLETE":
+        val_color = "#0f766e"
+    else:
+        val_color = "#b45309"
 
     # Elevation tile (highlight an unresolved conflict).
-    if len(elev["claims"]) > 1 and elev["selected_value"] is None:
+    if elev.get("conflict_status") == "OPEN_EFFECTIVE_EDITION_RECONCILIATION_REQUIRED" and elev["selected_value"] is None:
         elev_vals = " / ".join(f"{_esc(c['value'])} {_esc(c['unit'])}" for c in elev["claims"])
         elev_html = (
             f'<div class="v">{elev_vals}</div>'
@@ -270,9 +289,11 @@ def render_html(package: Dict[str, Any], ai_text: Optional[str] = None) -> str:
     # Runway rows.
     rows = []
     for r in package["runways"]:
-        length = _esc(r["declared_length"]["value"])
-        width = _esc(r["declared_width"]["value"])
-        unit = _esc(r["declared_width"]["unit"])
+        length_value = r["declared_length"].get("value")
+        width_value = r["declared_width"].get("value")
+        length = _esc(length_value) if length_value is not None else "n/a"
+        width = _esc(width_value) if width_value is not None else "n/a"
+        unit = _esc(r["declared_width"].get("unit") or "M")
         for i, d in enumerate(r["directions"]):
             t = d["threshold"]
             rlon, rlat = (t["coordinates_lonlat"] + [None, None])[:2]
@@ -281,13 +302,14 @@ def render_html(package: Dict[str, Any], ai_text: Optional[str] = None) -> str:
                 f'<span class="dim">{length}×{width} {unit}</span></td>'
                 if i == 0 else ""
             )
+            tdz_value = t["tdz_elevation"].get("value")
             rows.append(
                 "<tr>" + pair_cell +
                 f"<td>{_esc(d['designator'])}</td>"
                 f"<td class='num'>{_esc(round(rlat, 6)) if rlat is not None else 'n/a'}</td>"
                 f"<td class='num'>{_esc(round(rlon, 6)) if rlon is not None else 'n/a'}</td>"
                 f"<td class='num'>{_esc(t['elevation']['value'])}</td>"
-                f"<td class='num'>{_esc(t['tdz_elevation']['value'])}</td>"
+                f"<td class='num'>{_esc(tdz_value) if tdz_value is not None else 'n/a'}</td>"
                 "</tr>"
             )
     runway_rows = "".join(rows)
@@ -356,6 +378,7 @@ def render_html(package: Dict[str, Any], ai_text: Optional[str] = None) -> str:
     <div class="aoc-badges">
       <span class="b-op">NON-OPERATIONAL · research only</span>
       <span class="b-val">{_esc(val_status)} · {_esc(val.get('failure_count', 0))} failures</span>
+      <span class="b-val">EXTRACTION {_esc(extraction_status)}</span>
     </div>
     {source_line}
   </div>
@@ -370,7 +393,7 @@ def render_html(package: Dict[str, Any], ai_text: Optional[str] = None) -> str:
       <div class="warn" style="color:#64748b">{_esc(', '.join(r['designator_pair'] for r in package['runways']))}</div></div>
     <div class="tile"><div class="k">Taxiways</div>
       <div class="v">{_esc(tx.get('count', 0))}</div>
-      <div class="warn" style="color:#64748b">from legend</div></div>
+      <div class="warn" style="color:#64748b">{_esc(tx.get('completeness_status'))}</div></div>
   </div>
 
   <div class="aoc-sec">
