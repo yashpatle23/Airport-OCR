@@ -11,8 +11,10 @@ Companion docs: [`PRD.md`](PRD.md) · [`Architecture.md`](Architecture.md) ·
 - **Repo:** `yashpatle23/Airport-OCR`
 - **Working clone:** `/projects/sandbox/Airport-OCR-clone`
 - **Branch:** `feat/local-fastapi-app` (created from `feat/multi-airport-upload`).
-- **Current task:** version 0.3.0 local FastAPI application and infrastructure are
-  implemented; final verification/review/publication is in progress.
+- **Current task:** version 0.3.0 local FastAPI application and infrastructure
+  are implemented, verified to the available sandbox boundary, and published.
+- **Review:** [PR #4](https://github.com/yashpatle23/Airport-OCR/pull/4) from
+  `feat/local-fastapi-app` into `main`.
 - **Parent review:** [PR #3](https://github.com/yashpatle23/Airport-OCR/pull/3)
   contains the earlier multi-airport/Colab increment.
 - **Tests/checks:** **94/94 existing regressions pass**; compileall, Node
@@ -146,7 +148,8 @@ Pydantic JSON response`
   sandbox, so ASGI/native-PDF/container smoke is not claimed; no new tests were
   added without an explicit request, and post-materialization PyMuPDF page
   allocations remain a documented local-scope boundary.
-- Final commit, push, and review link are the next step.
+- Published implementation commit `3949a7e` on `feat/local-fastapi-app` and
+  opened [PR #4](https://github.com/yashpatle23/Airport-OCR/pull/4) into `main`.
 
 ### 2026-08-19 — Consolidated implementation documentation
 - Added `docs/PROJECT_IMPLEMENTATION_SUMMARY.md` as the single project-level

@@ -91,7 +91,7 @@ are published.
 **Exit gate met:** full tests, compileall, diff checks, deterministic notebook,
 remote commit/notebook lookup, and exact Git installer resolution all pass.
 
-## Phase 8 — Local application and infrastructure 🟡 VERIFIED / PUBLICATION PENDING
+## Phase 8 — Local application and infrastructure ✅ DELIVERED
 
 **Goal:** replace Colab as the primary development path with a portable local
 Python microservice and container profile.
@@ -107,10 +107,11 @@ ASGI/native-PDF and Compose startup smoke are not claimed because the sandbox
 lacks the application dependencies and Compose provider; the existing suite has
 no new API coverage because tests require an explicit request.
 
-**Exit gate remaining:** publish the branch and review link. Before any remote or
-hostile-input deployment, add dependency-enabled API/service regressions and a
-process-isolated parser with enforceable memory/CPU/time limits. Colab remains an
-optional old demo.
+**Delivery:** implementation commit `3949a7e` is published on
+`feat/local-fastapi-app`; [PR #4](https://github.com/yashpatle23/Airport-OCR/pull/4)
+targets `main`. Before any remote or hostile-input deployment, add dependency-
+enabled API/service regressions and a process-isolated parser with enforceable
+memory/CPU/time limits. Colab remains an optional old demo.
 
 ## Future phases
 

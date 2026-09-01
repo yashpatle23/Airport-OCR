@@ -464,9 +464,16 @@ evidence, but they must not weaken the project's anti-fabrication rules.
 
 ## 11. Delivery references
 
-The 0.3.0 local FastAPI increment is developed on `feat/local-fastapi-app`; its
-commit and review link are recorded after final verification/publication. The
-following references are the parent 0.2.0 multi-airport/Colab delivery:
+The 0.3.0 local FastAPI increment is published for review:
+
+- Implementation commit:
+  [`3949a7e`](https://github.com/yashpatle23/Airport-OCR/commit/3949a7e)
+- Delivery branch:
+  [`feat/local-fastapi-app`](https://github.com/yashpatle23/Airport-OCR/tree/feat/local-fastapi-app)
+- Pull request:
+  [PR #4 — Add local FastAPI application and infrastructure](https://github.com/yashpatle23/Airport-OCR/pull/4)
+
+The following references are the parent 0.2.0 multi-airport/Colab delivery:
 
 - Reviewed implementation commit:
   [`4f180eca52dcbe1d35314b68e8c31ee14bf35056`](https://github.com/yashpatle23/Airport-OCR/commit/4f180eca52dcbe1d35314b68e8c31ee14bf35056)
