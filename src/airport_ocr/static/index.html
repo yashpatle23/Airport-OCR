@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Local, non-operational airport-chart PDF extraction">
+  <title>Airport-OCR Local</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <p class="eyebrow">LOCAL APPLICATION · RESEARCH ONLY</p>
+      <h1>Airport-OCR</h1>
+      <p class="subtitle">Upload a native-text aerodrome-chart PDF and inspect the extracted JSON locally.</p>
+    </div>
+    <div class="status" id="health-status" aria-live="polite">Checking service…</div>
+  </header>
+
+  <main>
+    <section class="warning" role="note">
+      <strong>Non-operational.</strong> Results are provisional, not authoritative aeronautical data,
+      and must never be used for navigation. Source permission and qualified aviation review remain required.
+    </section>
+
+    <section class="panel upload-panel" aria-labelledby="upload-title">
+      <div class="section-heading">
+        <div>
+          <p class="step">STEP 1</p>
+          <h2 id="upload-title">Upload one PDF</h2>
+        </div>
+        <span class="limit">PDF only · maximum 5 MiB</span>
+      </div>
+
+      <form id="upload-form">
+        <label class="drop-zone" for="pdf-file" id="drop-zone">
+          <input id="pdf-file" name="file" type="file" accept="application/pdf,.pdf" required>
+          <span class="drop-icon" aria-hidden="true">⇧</span>
+          <span class="drop-title">Choose an aerodrome-chart PDF</span>
+          <span class="drop-copy" id="file-label">No file selected</span>
+        </label>
+
+        <label class="permission-row">
+          <input id="permission-confirmed" type="checkbox" required>
+          <span>I confirm I am permitted to process this file. This attestation is recorded but not independently verified.</span>
+        </label>
+
+        <div class="actions">
+          <button type="submit" id="extract-button">Extract PDF</button>
+          <button type="button" class="secondary" id="reset-button">Reset</button>
+        </div>
+      </form>
+      <div id="request-status" class="request-status" aria-live="polite"></div>
+      <div id="error-panel" class="error-panel" role="alert" hidden></div>
+    </section>
+
+    <section class="panel result-panel" id="result-panel" hidden aria-labelledby="result-title">
+      <div class="section-heading result-heading">
+        <div>
+          <p class="step">STEP 2</p>
+          <h2 id="result-title">Extracted data</h2>
+        </div>
+        <div class="result-actions">
+          <label for="result-view" class="sr-only">JSON view</label>
+          <select id="result-view">
+            <option value="full">Complete response</option>
+            <option value="normalized">Normalized airport</option>
+            <option value="package">Structured package</option>
+            <option value="geojson">GeoJSON</option>
+            <option value="validation">Validation report</option>
+            <option value="observations">Source observations</option>
+            <option value="holding_candidates">Holding candidates</option>
+          </select>
+          <button type="button" class="secondary compact" id="copy-button">Copy JSON</button>
+          <button type="button" class="secondary compact" id="download-button">Download JSON</button>
+        </div>
+      </div>
+      <div class="summary-grid" id="summary-grid"></div>
+      <pre id="json-output" tabindex="0"></pre>
+    </section>
+  </main>
+
+  <footer>
+    <span>PDF → Extract → Identify → Structure → JSON</span>
+    <a href="/api/openapi.json">OpenAPI JSON</a>
+  </footer>
+  <script src="/assets/app.js" defer></script>
+</body>
+</html>

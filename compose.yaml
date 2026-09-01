@@ -1,0 +1,36 @@
+services:
+  airport-ocr:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: airport-ocr-local:0.3.0
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      AIRPORT_OCR_MAX_CONCURRENCY: ${AIRPORT_OCR_MAX_CONCURRENCY:-2}
+      AIRPORT_OCR_MAX_PDF_PAGES: ${AIRPORT_OCR_MAX_PDF_PAGES:-100}
+      AIRPORT_OCR_MAX_NATIVE_WORDS: ${AIRPORT_OCR_MAX_NATIVE_WORDS:-250000}
+      AIRPORT_OCR_MAX_DRAWINGS_PER_PAGE: ${AIRPORT_OCR_MAX_DRAWINGS_PER_PAGE:-20000}
+      AIRPORT_OCR_MAX_VECTOR_SEGMENTS: ${AIRPORT_OCR_MAX_VECTOR_SEGMENTS:-100000}
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 1.0
+    restart: "no"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3).read()"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

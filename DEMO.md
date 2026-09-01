@@ -18,37 +18,44 @@ five requested aerodrome-chart groups.
   accepts uploads, derives the airport/runways from the source, and safely stops
   or stays partial on unsupported layouts.
 
-## 2. Recommended live demo — Colab upload
+## 2. Recommended live demo — local FastAPI upload
 
-Open:
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --constraint constraints-app.txt -e .
+airport-ocr-api --host 127.0.0.1 --port 8000
+```
 
-<https://colab.research.google.com/github/yashpatle23/Airport-OCR/blob/4f180eca52dcbe1d35314b68e8c31ee14bf35056/notebooks/Airport_OCR_Full_Pipeline.ipynb>
+Open <http://127.0.0.1:8000>, then:
 
-Then:
-
-1. `Runtime → Run all`.
-2. Set `SOURCE_MODE = Upload PDF` (the default).
-3. Tick `I_HAVE_PERMISSION_TO_PROCESS`.
-4. Click the browser **Choose Files** upload button and select exactly one PDF.
-5. At the end, download `<source>-<sha8>-airport-ocr-results.zip`.
+1. Drag/drop or choose exactly one permitted PDF no larger than 5 MiB.
+2. Confirm permission to process it.
+3. Select **Extract JSON locally**.
+4. Review the summary and switch among complete, normalized, GeoJSON,
+   validation, candidates, and package views.
+5. Copy or download the current JSON view.
 
 Talk through the gates:
 
-- SHA-256 + PDF signature + original filename;
-- native-text capability check (a scanned PDF stops and requests a future OCR
-  adapter rather than guessing);
-- page-aware header/runway/taxiway adapters;
+- `.pdf` extension, exact PDF part MIME, fixed file-byte limit, and `%PDF-`;
+- Pydantic permission/profile validation and versioned OpenAPI/problem details;
+- awaited upload reads and tracked, bounded `asyncio.to_thread` native work;
+- native-text capability check (a scanned PDF stops rather than guessing);
+- page/word/drawing/vector limits and deterministic document cleanup;
 - dynamic reciprocal runway pairing and CRS84 coordinates;
-- expected blockers for values not present in a layout;
-- all-page black-linework holding **candidates**, all `NEEDS_REVIEW`;
-- dynamic search/map/report; optional Gemini paraphrase using `GEMINI_API_KEY`;
-- one complete artifact ZIP.
+- visible expected blockers and review-only holding candidates;
+- same-origin UI with no CDN, analytics, persistence, or outbound browser calls.
 
-### Optional deterministic VOBL demo
+### Optional immutable Colab demo
 
-Choose `Use optional VOBL sample URL`. This explicit profile demonstrates the
-known VOBL result, including 43 legend taxiways and the unresolved 3003/3001 FT
-external-claim conflict. If AAI blocks the download, switch to Upload PDF.
+The earlier generated notebook remains available for historical/artifact-ZIP
+demonstrations:
+
+<https://colab.research.google.com/github/yashpatle23/Airport-OCR/blob/4f180eca52dcbe1d35314b68e8c31ee14bf35056/notebooks/Airport_OCR_Full_Pipeline.ipynb>
+
+It is not the current development environment. Its explicit VOBL sample mode
+preserves the known 43-taxiway/conflicting-elevation regression.
 
 ## 3. Show the VOMM architecture difference
 
@@ -71,36 +78,24 @@ ARP `[80.1736036111, 12.9950988889]`, 54 FT, 07/25 + 12/30, physical dimensions
 `PARTIAL`: missing TDZ/taxiway widths and accepted holding geometry remain
 expected blockers rather than being hidden by the zero-failure count.
 
-## 4. Local no-network regression demo
+## 4. Optional no-PDF core regression demo
 
 ```bash
-git clone https://github.com/yashpatle23/Airport-OCR.git
-cd Airport-OCR
-git checkout 4f180eca52dcbe1d35314b68e8c31ee14bf35056  # immutable reviewed implementation
-python -m pip install -e ".[dev]"
 python scripts/demo.py
 ```
 
-This intentionally remains the bundled **VOBL regression fixture** so a demo can
-run without source PDF/network access. Artifacts land in `demo_out/`.
+This uses the bundled VOBL regression fixture so domain behavior can be shown
+without source-PDF rights or network access. Artifacts land in `demo_out/`.
 
-With a permitted VOBL PDF and PyMuPDF:
-
-```bash
-pip install pymupdf
-python scripts/demo.py --pdf VOBL-ADC.pdf
-```
-
-## 5. Show the offline web app
+## 5. Optional legacy observation web app
 
 ```bash
-airport-ocr serve examples/vobl-from-pdf-observations.json --port 8000
-# http://127.0.0.1:8000
+airport-ocr serve examples/vobl-from-pdf-observations.json --port 8001
+# http://127.0.0.1:8001
 ```
 
-The title, airport name, elevation state, runway table, and map are data-driven;
-they no longer display VOBL/Bengaluru when processing another airport. The UI
-has no external assets/network calls.
+This compatibility surface accepts existing observations rather than a PDF. The
+FastAPI application on port 8000 is the primary upload workflow.
 
 ## 6. Show the engineering
 
@@ -112,14 +107,14 @@ python scripts/build_full_pipeline_notebook.py
 Key files:
 
 ```text
-src/airport_ocr/pdf_words.py   page-aware multi-layout adapters + diagnostics
-src/airport_ocr/pipeline.py    airport-independent domain invariants
-src/airport_ocr/coordinates.py exact DMS→CRS84 + reciprocal runway rules
-src/airport_ocr/holding.py     page-qualified review-only vector candidates
-src/airport_ocr/report.py      package, summary, escaped self-contained HTML
-src/airport_ocr/web*.py        dynamic offline API/UI
-scripts/build_full_pipeline_notebook.py  deterministic Colab generator
-planning/ + docs/              PRD, architecture, rules, phases, research, memory
+src/airport_ocr/api/            FastAPI lifecycle, controllers, Pydantic DTOs
+src/airport_ocr/services/       bounded synchronous PyMuPDF application service
+src/airport_ocr/static/         central upload and JSON display UI
+src/airport_ocr/pdf_words.py    page-aware multi-layout adapters + diagnostics
+src/airport_ocr/pipeline.py     airport-independent domain invariants
+src/airport_ocr/coordinates.py  exact DMS→CRS84 + reciprocal runway rules
+Dockerfile + compose.yaml       portable local runtime/security/resource controls
+docs/ + planning/               architecture, API, memory/GC, requirements/decisions
 ```
 
 ## 7. Honest limitations (say these)

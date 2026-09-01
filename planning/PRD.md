@@ -39,8 +39,9 @@ PDF → Extract → Identify → Structure → Search
    status; conflicts are preserved, never silently resolved.
 5. Safely diagnose scanned or unsupported layouts instead of emitting facts from
    another airport/profile; partial extraction must remain visibly partial.
-6. Ship a reproducible upload-first demo (Colab notebook + local CLI + offline
-   web UI) plus an optional **AI paraphrase** of the structured package.
+6. Ship a portable **local FastAPI application** and local-only container as
+   the primary development/delivery path, with the generated Colab notebook
+   retained only as an optional immutable demo.
 
 ## 3. Non-goals (explicitly out of scope)
 
@@ -59,7 +60,7 @@ PDF → Extract → Identify → Structure → Search
 | **Aviation-data engineer** | Turn charts into structured data with an audit trail | CLI pipeline, JSON/GeoJSON exports, validation report |
 | **GIS / data analyst** | Query aerodrome features spatially | GeoJSON `FeatureCollection` + search filters (bbox, designator) |
 | **Reviewer / QA (aviation SME)** | Judge whether an extraction is trustworthy | Explicit completeness statuses, preserved conflicts, review-only candidates |
-| **Evaluator / senior reviewer** | See a working end-to-end demo | Colab notebook, `DEMO.md`, offline web UI, styled HTML report |
+| **Evaluator / senior reviewer** | See a working end-to-end demo | Local FastAPI upload-to-JSON UI, optional Colab notebook, styled reports |
 | **Compliance / governance** | Confirm rights and provenance controls | Phase-0 governance docs, intake manifests, source register |
 
 ## 5. Functional requirements
@@ -101,28 +102,52 @@ PDF → Extract → Identify → Structure → Search
 - Search by `feature_type`, `airport`, `designator`, `bbox`.
 
 ### FR-7 Interfaces
-- **Full Colab**: upload button by default; optional explicit VOBL sample URL;
-  preserve original filename, derive a SHA-qualified run ID, scan all pages, use
-  dynamic airport/runway/map/search values, and download one complete artifact ZIP.
-- **CLI**: `intake`, `process`, `search`, `serve`, `extract-pdf-words`.
-- **Web app**: stdlib HTTP API + offline browser UI (no external assets/network).
-- **Report**: `render_html(package, ai_text)` → self-contained styled HTML card.
-- **AI summary (optional)**: paraphrase-only of the *already-structured* package.
+- **Local application (primary):** FastAPI/Pydantic microservice plus same-origin
+  browser UI; centrally upload one PDF, display/download extracted JSON, expose a
+  versioned OpenAPI contract, and return structured problem details.
+- **Upload policy:** require `.pdf`, `application/pdf`, `%PDF-`, explicit
+  permission attestation, and a fixed maximum of 5 MiB (5,242,880 file bytes).
+- **Async boundary:** use `async`/`await` for request I/O and bounded tracked
+  `asyncio.to_thread` work for synchronous PyMuPDF/domain processing.
+- **Infrastructure:** local Uvicorn launcher and local-interface Docker/Compose
+  profile with non-root, read-only, health/resource controls.
+- **CLI:** `intake`, `process`, `search`, `serve`, `extract-pdf-words`; legacy
+  `serve` remains compatible but is not the primary PDF workflow.
+- **Optional Colab:** immutable upload-first demonstration, not the development
+  environment or current application runtime.
+- **Report/AI:** self-contained report and optional paraphrase-only summary of
+  already-structured data.
 
 ## 6. Non-functional requirements
 
-- **Zero runtime third-party dependencies** for the core package (Python 3.9+).
-  PyMuPDF is used only to produce the upstream word/vector dump, off the runtime path.
-- **Deterministic** normalization/validation (same input → same output).
-- **Offline & safe by default**: web UI ships no external assets, scripts, or
-  network calls; all chart/AI text is HTML-escaped (treated as untrusted).
-- **Reproducible**: Colab notebook pinned to the working branch; tests via pytest.
-- **Auditable**: every output field is traceable to source + carries a status.
+- **Portable local-first runtime:** Python 3.9+ FastAPI application starts via a
+  documented virtual-environment command or the local-only Compose profile.
+- **Layered dependencies:** the deterministic domain core stays framework-
+  independent/stdlib-only; reviewed application edges own FastAPI, Pydantic,
+  PyMuPDF, multipart, and Uvicorn.
+- **Deterministic** normalization/validation (same evidence → same domain output).
+- **Offline & safe by default:** the service binds locally; UI assets are packaged
+  same-origin with no external calls; dynamic data is rendered as text.
+- **Bounded resources:** fixed file bytes plus configurable page, word, drawing,
+  vector-segment, concurrency, and container limits.
+- **Auditable API:** Pydantic DTOs, OpenAPI, versioned paths, structured problem
+  details, and explicit non-operational/partial/review states.
+- **Runtime proficiency:** architecture documentation explains async behavior and
+  Python heap, stacks/frames, reference counting, cyclic GC, native allocations,
+  deterministic cleanup, and measurement.
 
 ## 7. Success metrics / acceptance
 
-- Full Colab defaults to **Upload PDF**, accepts exactly one valid PDF, and writes
-  a SHA-qualified artifact ZIP without renaming the source to VOBL.
+- Local FastAPI is the documented primary workflow and runs from a clean virtual
+  environment or the local-only Compose profile; Colab is optional/historical.
+- The browser centrally accepts one file and displays the complete JSON result.
+- The API rejects non-PDF extension/MIME/signature, missing permission, files over
+  5,242,880 bytes, and bounded document complexity with structured errors.
+- Request I/O uses `async`/`await`; synchronous PyMuPDF work is offloaded behind
+  tracked bounded per-process capacity and does not run on the event-loop thread.
+- OpenAPI and Pydantic DTOs describe the versioned success/error envelopes.
+- Local/container setup, API standards, async behavior, and Python heap/stack/GC
+  are documented with explicit limits and non-operational boundaries.
 - The VOBL regression profile still extracts 09L/27R, 09R/27L and 43 taxiways.
 - A VOMM-like native-text dump extracts ICAO VOMM, ARP
   `[80.1736036111, 12.9950988889]`, 54 FT elevation, and reciprocal pairs

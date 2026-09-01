@@ -2,20 +2,46 @@
 
 Turn aerodrome-chart PDFs into validated, normalized, searchable research data — safely.
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/yashpatle23/Airport-OCR/blob/4f180eca52dcbe1d35314b68e8c31ee14bf35056/notebooks/Airport_OCR_Full_Pipeline.ipynb)
+## Run the local application
 
-**Recommended:** open the [full upload-first Colab pipeline](notebooks/Airport_OCR_Full_Pipeline.ipynb),
-choose **Upload PDF**, tick the permission acknowledgement, and upload one
-native-text aerodrome chart. The notebook executes:
+The primary delivery is now a portable FastAPI microservice with a same-origin
+browser UI. It accepts one PDF up to **5 MiB**, runs extraction asynchronously
+without blocking the ASGI event loop, and displays the complete structured JSON.
 
-```text
-PDF → Extract → Identify → Structure → Search
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --constraint constraints-app.txt -e .
+airport-ocr-api --host 127.0.0.1 --port 8000
+# open http://127.0.0.1:8000
 ```
 
-It produces a single ZIP containing intake provenance, positioned words,
-observations, normalized JSON, GeoJSON, validation, a structured package,
-deterministic/optional-AI summaries, an HTML report, and review-only holding
-candidates. An explicit optional mode downloads the VOBL sample chart.
+Or use the local-only container profile:
+
+```bash
+cp .env.example .env             # optional: edit bounded resource settings
+docker compose config            # validate the resolved configuration
+docker compose up --build -d
+docker compose ps
+docker compose logs -f airport-ocr
+# open http://127.0.0.1:8000
+# stop and remove the local service with: docker compose down
+```
+
+Compose publishes only to loopback, runs one non-root Uvicorn worker, uses a
+read-only root filesystem, and caps the container at 512 MiB, 1 CPU, and 128
+processes. The `/tmp` multipart spool is a 64 MiB memory-backed filesystem and
+shares the container memory budget. These are local-development defaults, not a
+public deployment profile.
+
+The application executes:
+
+```text
+PDF → Intake → Extract → Identify → Validate → Structure → JSON
+```
+
+The earlier [upload-first Colab notebook](https://colab.research.google.com/github/yashpatle23/Airport-OCR/blob/4f180eca52dcbe1d35314b68e8c31ee14bf35056/notebooks/Airport_OCR_Full_Pipeline.ipynb)
+remains an optional immutable demo, not the primary development environment.
 
 > **Non-operational / research-only.** Nothing emitted by this project is
 > authoritative aeronautical data, and it must never be used for navigation or
@@ -27,8 +53,11 @@ candidates. An explicit optional mode downloads the VOBL sample chart.
 
 For a consolidated account of what was designed, implemented, tested, and
 shipped, see the [project implementation summary](docs/PROJECT_IMPLEMENTATION_SUMMARY.md).
-Detailed requirements, architecture, research, and phase records remain in
-[`planning/`](planning/) and [`docs/`](docs/).
+The [local application architecture](docs/architecture/LOCAL_FASTAPI_APPLICATION.md),
+[API standards](docs/API_STANDARDS.md), and
+[Python memory/concurrency study](docs/PYTHON_MEMORY_AND_CONCURRENCY.md) document
+the primary runtime in detail. Requirements, decisions, and phase records remain
+in [`planning/`](planning/) and [`docs/`](docs/).
 
 ## Problem scope
 
@@ -47,9 +76,15 @@ resolved.
 
 ## What works now
 
-- **Upload-first Colab UX** — browser upload button, exact-one-PDF/signature gate,
-  preserved original name, SHA-qualified run ID, all-page processing, dynamic
-  search/map labels, and one complete result ZIP.
+- **Local FastAPI application** — central browser upload, versioned OpenAPI,
+  Pydantic request/response DTOs, RFC-style problem details, strict PDF-only and
+  5 MiB enforcement, async chunk reads, bounded `asyncio.to_thread` extraction,
+  and formatted/downloadable JSON views.
+- **Portable infrastructure** — local Uvicorn command plus non-root,
+  local-interface Docker/Compose deployment with health checks, a read-only root
+  filesystem, dropped capabilities, and CPU/memory/process limits.
+- **Optional Colab demo** — browser upload, SHA-qualified run ID, all-page
+  processing, dynamic search/map labels, and one complete result ZIP.
 - **Controlled intake** — SHA-256, magic-byte detection, extension mismatch, and
   optional content-addressed quarantine. Intake records malware/rights state; it
   never claims to scan or grant rights.
@@ -72,8 +107,9 @@ resolved.
   `NEEDS_REVIEW`; accepted positions stay blocked-not-absent.
 - **Exports/search/report** — normalized JSON, GeoJSON, attribute/bbox search,
   self-contained safe HTML, and optional Gemini paraphrase.
-- **Offline web app** — stdlib API + dynamic browser UI + inline SVG, with no
-  third-party runtime dependencies or external UI assets.
+- **Legacy observation web app** — the stdlib JSON-input API/UI remains available
+  through `airport-ocr serve`; it is self-contained but is no longer the primary
+  PDF workflow.
 
 ## Honest support boundary
 
@@ -120,15 +156,29 @@ operational dataset or a substitute for running the original permitted PDF.
 Extraction remains visibly `PARTIAL` because TDZ values, complete taxiway
 inventory/widths, and accepted holding geometry are unavailable.
 
-## Install
+## Installation and startup
 
 ```bash
-python -m pip install -e ".[dev]"
-# or: export PYTHONPATH=src
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --constraint constraints-app.txt -e .
+airport-ocr-api --host 127.0.0.1 --port 8000
 ```
 
-Core requires Python 3.9+ and has **zero third-party runtime dependencies**.
-PyMuPDF, matplotlib, and Gemini are optional notebook/adaptor dependencies.
+For development reload only:
+
+```bash
+airport-ocr-api --host 127.0.0.1 --port 8000 --reload
+```
+
+The service targets Python 3.11 and the package remains source-compatible with
+Python 3.9+. FastAPI, Pydantic, Uvicorn, python-multipart, and PyMuPDF are the
+local application dependencies. The deterministic domain modules do not import
+FastAPI/Pydantic and only the PDF service adapter imports PyMuPDF.
+
+Environment limits are documented in `.env.example`. The 5 MiB upload maximum
+is a fixed product/security rule and cannot be increased through environment
+configuration.
 
 ## CLI usage
 
@@ -168,19 +218,25 @@ pages = [
 json.dump(pages, open("chart-words.json", "w"))
 ```
 
-## Web API
+## Local FastAPI contract
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/health` | liveness + dataset identity |
-| GET | `/api/airport` | normalized airport/runways/collections |
-| GET | `/api/features` | GeoJSON `FeatureCollection` |
-| GET | `/api/validation` | validation report |
-| GET | `/api/search` | filters: `feature_type`, `airport`, `designator`, `bbox` |
-| POST | `/api/process` | stateless observation normalization |
+| GET | `/` | same-origin PDF upload and JSON display UI |
+| GET | `/api/v1/health` | liveness, version, safety flag, and upload limit |
+| POST | `/api/v1/extractions` | multipart PDF extraction (`file`, `permission_confirmed`, `profile=auto`) |
+| GET | `/api/openapi.json` | machine-readable API contract (CDN-backed interactive docs disabled) |
 
-The browser title/name/elevation state is now data-driven; it no longer displays
-VOBL/Bengaluru for another airport.
+`POST /api/v1/extractions` requires a `.pdf` filename,
+`Content-Type: application/pdf`, `%PDF-` signature, permission attestation, and
+at most 5 MiB of uploaded file bytes. Expected errors use
+`application/problem+json`. Successful output includes intake metadata,
+observations, normalized JSON, GeoJSON, validation, holding candidates, the
+structured package, and deterministic summary.
+
+The legacy observation-JSON stdlib server remains available through
+`airport-ocr serve` for compatibility. New local PDF workflows should use the
+FastAPI application.
 
 ## Exit codes
 
@@ -191,17 +247,20 @@ remain.
 ## Project layout
 
 ```text
-src/airport_ocr/       intake, page-aware extraction, validation, exports, search, UI
-notebooks/             upload-first Full Pipeline + smaller step-by-step notebook
-scripts/               deterministic notebook builder + local VOBL demo
-examples/              VOBL regression + rights-safe synthetic VOMM fixtures
-docs/research/         enterprise + multi-airport extraction research
-docs/architecture/     POC + multi-airport adapter/capability design
-docs/phase-0, phase-1/ governance and historical benchmark evidence
-planning/              PRD, Architecture, Rules, Phases, Design, Memory
+src/airport_ocr/api/       FastAPI app, versioned controllers, DTOs, errors, launcher
+src/airport_ocr/services/  synchronous PyMuPDF application service
+src/airport_ocr/static/    same-origin central PDF upload and JSON UI
+src/airport_ocr/*.py       framework-independent extraction/domain/CLI modules
+Dockerfile, compose.yaml   local container runtime and resource/security controls
+notebooks/                 optional generated Colab demonstrations
+scripts/                   deterministic notebook builder + local VOBL demo
+examples/                  VOBL regression + rights-safe synthetic VOMM fixtures
+docs/                      local architecture/API/runtime study + research/history
+planning/                  PRD, Architecture, Rules, Phases, Design, Memory
 ```
 
-Regenerate the full notebook (do not hand-edit notebook JSON):
+The notebook is an optional legacy demonstration. If it must be regenerated, do
+not hand-edit its JSON:
 
 ```bash
 python scripts/build_full_pipeline_notebook.py

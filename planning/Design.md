@@ -112,7 +112,23 @@ lights `#bf00ff`. See [`Architecture.md`](Architecture.md) §6.
 - All dynamic values are HTML-escaped ([`Rules.md`](Rules.md) §4.2); styling must
   never require enabling scripts or inline event handlers.
 
-## 7. Colab interaction design
+## 7. Local FastAPI interaction design
+
+- **Primary control:** one central drag/drop/select PDF area with filename/size
+  feedback and visible fixed 5 MiB limit.
+- **Consent:** extraction remains disabled by validation unless permission is
+  explicitly confirmed; the app does not imply rights verification.
+- **Progressive result:** show request state, a compact summary, and selectable
+  complete/normalized/GeoJSON/validation/candidate/package JSON views.
+- **Safe rendering:** construct summary DOM nodes and render JSON/errors with
+  `textContent`; never inject uploaded content as HTML.
+- **No external dependencies:** assets are packaged and same-origin; no CDN,
+  tiles, analytics, fonts, or outbound calls.
+- **Status language:** extraction completion does not mean operational validity;
+  partial, failed-validation, expected-blocker, and review-required states remain
+  visible.
+
+## 8. Optional historical Colab interaction design
 
 - **Default control:** `SOURCE_MODE = Upload PDF`; the browser-native upload
   button must be immediately visible after the permission acknowledgement.
@@ -127,7 +143,7 @@ lights `#bf00ff`. See [`Architecture.md`](Architecture.md) §6.
 - **Unsupported state:** scanned/unknown required layouts show an actionable
   explanation rather than an empty report.
 
-## 8. Change policy
+## 9. Change policy
 
 If you restyle a surface, update **both** the code and this doc's token tables in
 the same change, and keep the palette within the existing slate + semantic set

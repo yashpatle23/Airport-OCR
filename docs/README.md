@@ -3,6 +3,17 @@
 All documents are **non-operational, research-only** and must not be treated as
 authoritative aeronautical data.
 
+## Current local application
+
+- [Local FastAPI application and infrastructure](architecture/LOCAL_FASTAPI_APPLICATION.md)
+  — component boundaries, async request lifecycle, PDF/resource limits, local
+  setup, Docker operations, and deployment/security boundary.
+- [API standards](API_STANDARDS.md) — versioning, multipart validation,
+  Pydantic/Spring-style layering, problem details, status codes, and async rules.
+- [Python memory and concurrency](PYTHON_MEMORY_AND_CONCURRENCY.md) — project-
+  specific heap, thread-stack/frame, reference-counting, cyclic-GC, native
+  PyMuPDF memory, cleanup, cancellation, and measurement guidance.
+
 ## Project overview
 
 - [Completed implementation summary](PROJECT_IMPLEMENTATION_SUMMARY.md) — a
