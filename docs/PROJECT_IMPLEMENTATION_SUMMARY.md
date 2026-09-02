@@ -9,6 +9,24 @@ remains intentionally out of scope.
 > for navigation or operational decisions. Source rights and qualified aviation
 > review remain required.
 
+## Current 0.3.0 application delivery
+
+Local development is now primary. The current increment adds a portable FastAPI
+microservice, same-origin central PDF upload-to-JSON UI, fixed 5 MiB PDF policy,
+Pydantic/OpenAPI contracts and problem details, tracked bounded async/thread
+offload, PyMuPDF complexity controls, and local Uvicorn plus Docker/Compose
+infrastructure. FastAPI was selected instead of Django because the service is
+stateless and needs ASGI/multipart/contracts rather than ORM/admin/template
+features.
+
+The deterministic domain core remains framework-independent. Application edges
+intentionally depend on FastAPI, Pydantic, PyMuPDF, python-multipart, and Uvicorn.
+The earlier Colab workflow documented below remains an optional immutable demo,
+not the primary development environment. See the
+[local architecture](architecture/LOCAL_FASTAPI_APPLICATION.md),
+[API standards](API_STANDARDS.md), and
+[Python memory/concurrency study](PYTHON_MEMORY_AND_CONCURRENCY.md).
+
 ## 1. Project objective
 
 Airport aerodrome charts are visually structured PDFs containing text, tables,
@@ -185,9 +203,23 @@ Extraction status (`COMPLETE`, `PARTIAL`, or unsupported/error state) and issue
 codes survive into normalized JSON, GeoJSON metadata, CLI summaries, packages,
 Markdown, HTML, and the web UI.
 
-### 3.8 CLI and local web application
+### 3.8 CLI and local web applications
 
-The CLI now provides:
+The primary browser application is now FastAPI. It provides:
+
+- `GET /` — central drag/drop/select PDF upload and JSON views;
+- `POST /api/v1/extractions` — versioned multipart extraction;
+- `GET /api/v1/health` — liveness/version/fixed limit;
+- `GET /api/openapi.json` — machine-readable contract; the default Swagger UI
+  is disabled because its CDN assets violate the offline/same-origin policy;
+- Pydantic request/response/settings validation and structured problem details;
+- exact file-part checks for `.pdf`, `application/pdf`, `%PDF-`, permission, and
+  maximum 5,242,880 bytes;
+- awaited upload I/O and non-blocking bounded admission with tracked
+  `asyncio.to_thread` native work;
+- packaged, same-origin, no-CDN assets that render JSON with `textContent`.
+
+The CLI continues to provide:
 
 - `intake` — controlled source inspection and manifest generation;
 - `extract-pdf-words` — generic positioned-word extraction with `auto` or
@@ -199,10 +231,9 @@ The CLI now provides:
 Ordinary file, JSON, metadata, coordinate, and type errors return controlled
 messages and exit codes rather than raw tracebacks.
 
-The local web app is data-driven and self-contained. It has no CDN, external UI
-assets, analytics, or outbound browser calls. Airport name, ICAO, elevation,
-runways, completeness badges, map, and search results come from the active
-dataset rather than VOBL defaults.
+The legacy `airport-ocr serve` observation-JSON stdlib app remains data-driven,
+self-contained, and compatible. It is no longer the primary PDF workflow. Both
+browser surfaces avoid CDNs, analytics, and outbound calls.
 
 ### 3.9 Reports and optional AI summary
 
@@ -217,12 +248,11 @@ AI is downstream and paraphrase-only. It cannot extract, correct, select, or
 invent aeronautical values. Structured output and the deterministic summary are
 complete without AI, and all chart/AI text is treated as untrusted when rendered.
 
-### 3.10 Upload-first Google Colab workflow
+### 3.10 Optional historical Google Colab workflow
 
-The full Colab notebook was rebuilt from the deterministic generator
-`scripts/build_full_pipeline_notebook.py`.
-
-The notebook now includes:
+The generated Colab notebook is retained as an immutable demonstration. It is
+not the primary development or application environment. It was rebuilt from the
+deterministic generator `scripts/build_full_pipeline_notebook.py` and includes:
 
 - **Upload PDF** as the default source mode;
 - an explicit permission acknowledgement;
@@ -243,13 +273,14 @@ implementation commit rather than a moving or nonexistent branch.
 
 ## 4. End-to-end workflow now available
 
-A supported run follows these steps:
+A supported local run follows these steps:
 
-1. **Select source:** upload one permitted PDF or explicitly choose the VOBL
-   sample mode.
-2. **Intake:** verify signature, compute SHA-256, record rights/status metadata,
-   and derive the run ID.
-3. **Extract:** read positioned native text from all pages and retain evidence.
+1. **Select source:** use the central browser UI or multipart API to submit one
+   permitted PDF up to 5 MiB and attest permission.
+2. **Transport validation:** require PDF extension, MIME, signature, size, and
+   Pydantic-validated options without persisting the file.
+3. **Extract:** bounded PyMuPDF work reads positioned native text/vector evidence
+   from all pages off the ASGI event-loop thread.
 4. **Identify:** derive chart/airport facts and determine supported adapters.
 5. **Assemble:** pair reciprocal runway directions and create conservative
    taxiway/holding collections.
@@ -258,8 +289,8 @@ A supported run follows these steps:
 7. **Validate:** report passes, real failures, and expected blockers separately.
 8. **Structure:** produce JSON, GeoJSON, package, Markdown, HTML, and candidate
    artifacts.
-9. **Search/display:** query features and render a dynamic non-operational map.
-10. **Download:** package all source metadata, evidence, and outputs into one ZIP.
+9. **Display/download:** return the complete response envelope to selectable
+   formatted JSON views; the optional Colab path can still create its historical ZIP.
 
 ## 5. Output artifacts
 
@@ -311,9 +342,10 @@ layout without redistributing the source chart. The regression verifies:
 The VOMM result correctly remains `PARTIAL` even though domain validation has no
 real failures.
 
-## 7. Verification and hardening completed
+## 7. Prior 0.2.0 verification baseline
 
-The delivered branch was checked with:
+Before the 0.3.0 local-application increment, the multi-airport/Colab branch was
+checked with:
 
 - **94 automated tests passing**;
 - Python `compileall` passing;
@@ -331,6 +363,33 @@ The delivered branch was checked with:
 - final behavior-level review with no confirmed high- or medium-severity issues;
 - remote resolution of the immutable Git commit and notebook;
 - exact Git installer resolution as `airport-ocr 0.2.0`.
+
+## 7.1 Current 0.3.0 verification
+
+The local-application increment was checked with:
+
+- **94/94 existing domain/CLI regressions passing**;
+- Python `compileall` for `src` and `scripts`;
+- JavaScript syntax validation with Node;
+- `git diff --check`;
+- source HTML parsing and no external HTTP/CDN references in packaged API/UI
+  source;
+- Compose YAML structural parsing;
+- a successful `airport_ocr-0.3.0-py3-none-any.whl` build whose 30 entries include
+  the API, PDF service, and all three static assets;
+- two behavior-level reviews; the confirmed unbounded extraction waiter and
+  Swagger-CDN findings were remediated with non-blocking token admission/503 and
+  disabled interactive docs plus CSP.
+
+Verification limits are explicit: this sandbox has no FastAPI, Pydantic,
+PyMuPDF, python-multipart, or Uvicorn installations and integration-only network
+access, so it could not run an ASGI/multipart/native-PDF smoke. Its Docker CLI
+also has no Compose provider, so the image/service could not be built and
+started here. No new tests were added because the project workflow rule requires
+an explicit test request; the 94 tests do not cover the new primary API. The
+post-page-materialization PyMuPDF allocation boundary is accepted only for the
+documented loopback/permitted-input local scope and requires process isolation
+before hostile or remote use.
 
 ## 8. Important design decisions
 
@@ -350,9 +409,15 @@ The delivered branch was checked with:
    extraction green or complete.
 8. **Conflicts remain unresolved:** the system does not auto-select among
    differing elevation claims.
-9. **Core remains lightweight:** Python 3.9+ with zero third-party runtime
-   dependencies; PyMuPDF, matplotlib, and Gemini are optional adapters.
-10. **No operational mode:** `OPERATIONAL_USE` remains false throughout.
+9. **Layered dependencies:** the Python 3.9+ domain core remains stdlib and
+   framework-independent; reviewed local-application edges own FastAPI, Pydantic,
+   PyMuPDF, multipart, and Uvicorn.
+10. **Local-first portability:** FastAPI/Uvicorn and Docker/Compose replace Colab
+    as the primary development path; Colab remains optional.
+11. **Async coordination is bounded:** overflow is rejected without a retained
+    queue; admitted native work keeps its token through cancellation; threads are
+    not isolation.
+12. **No operational mode:** `OPERATIONAL_USE` remains false throughout.
 
 ## 9. Key implementation locations
 
@@ -366,7 +431,11 @@ The delivered branch was checked with:
 | Holding candidates | `src/airport_ocr/holding.py` |
 | Search | `src/airport_ocr/search.py` |
 | CLI | `src/airport_ocr/cli.py` |
-| Local web application | `src/airport_ocr/webapp.py`, `webui.py` |
+| FastAPI application/contracts | `src/airport_ocr/api/` |
+| PDF application service | `src/airport_ocr/services/pdf_extraction.py` |
+| Central upload/JSON UI | `src/airport_ocr/static/` |
+| Local/container infrastructure | `Dockerfile`, `compose.yaml`, `.env.example` |
+| Legacy observation web app | `src/airport_ocr/webapp.py`, `webui.py` |
 | Package and reports | `src/airport_ocr/report.py` |
 | Full Colab generator | `scripts/build_full_pipeline_notebook.py` |
 | Generated full notebook | `notebooks/Airport_OCR_Full_Pipeline.ipynb` |
@@ -394,6 +463,17 @@ persistence, and operational hardening. These phases may increase supported
 evidence, but they must not weaken the project's anti-fabrication rules.
 
 ## 11. Delivery references
+
+The 0.3.0 local FastAPI increment is published for review:
+
+- Implementation commit:
+  [`3949a7e`](https://github.com/yashpatle23/Airport-OCR/commit/3949a7e)
+- Delivery branch:
+  [`feat/local-fastapi-app`](https://github.com/yashpatle23/Airport-OCR/tree/feat/local-fastapi-app)
+- Pull request:
+  [PR #4 — Add local FastAPI application and infrastructure](https://github.com/yashpatle23/Airport-OCR/pull/4)
+
+The following references are the parent 0.2.0 multi-airport/Colab delivery:
 
 - Reviewed implementation commit:
   [`4f180eca52dcbe1d35314b68e8c31ee14bf35056`](https://github.com/yashpatle23/Airport-OCR/commit/4f180eca52dcbe1d35314b68e8c31ee14bf35056)

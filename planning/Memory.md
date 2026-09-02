@@ -10,27 +10,45 @@ Companion docs: [`PRD.md`](PRD.md) · [`Architecture.md`](Architecture.md) ·
 
 - **Repo:** `yashpatle23/Airport-OCR`
 - **Working clone:** `/projects/sandbox/Airport-OCR-clone`
-- **Branch:** `feat/multi-airport-upload` (created from `feat/airport-ocr-poc`).
-- **Current task:** delivered on `feat/multi-airport-upload`; reviewed
-  implementation `4f180eca52dcbe1d35314b68e8c31ee14bf35056` is the immutable
-  notebook/install target.
-- **Review:** [PR #3](https://github.com/yashpatle23/Airport-OCR/pull/3).
-- **Tests:** **94/94 passing** with rights-safe VOMM, profile/header isolation,
-  strict list/coordinate/provenance/numeric handling, controlled CLI errors, and
-  cross-layer partial-status coverage.
+- **Branch:** `feat/local-fastapi-app` (created from `feat/multi-airport-upload`).
+- **Current task:** version 0.3.0 local FastAPI application and infrastructure
+  are implemented, verified to the available sandbox boundary, and published.
+- **Review:** [PR #4](https://github.com/yashpatle23/Airport-OCR/pull/4) from
+  `feat/local-fastapi-app` into `main`.
+- **Parent review:** [PR #3](https://github.com/yashpatle23/Airport-OCR/pull/3)
+  contains the earlier multi-airport/Colab increment.
+- **Tests/checks:** **94/94 existing regressions pass**; compileall, Node
+  JavaScript syntax, diff checks, HTML/Compose parsing, wheel build, and packaged
+  API/service/static-asset inspection pass. The sandbox lacks all FastAPI/PyMuPDF
+  runtime dependencies and a Compose provider, so ASGI/native/container smoke is
+  explicitly unverified and the existing suite does not cover the new API.
 - **Representative checks:** VOBL regression + source-shaped VOMM + scanned-PDF
   safe-stop + profile-mismatch rejection all pass.
 - **Notebook:** 22 cells; regeneration byte-identical; upload/default/ZIP/dynamic-
   search/all-page-holding assertions pass.
-- **Core runtime:** Python 3.9+, zero third-party dependencies.
-- **Colab adapters:** PyMuPDF, matplotlib, optional `google-generativeai`.
+- **Domain core:** Python 3.9+, framework-independent and stdlib-only.
+- **Application runtime:** FastAPI, Pydantic, PyMuPDF, python-multipart, Uvicorn;
+  reviewed direct versions are in `constraints-app.txt`.
+- **Primary interface:** local FastAPI central PDF upload and JSON display;
+  generated Colab remains an optional immutable demo.
 - **Safety:** `OPERATIONAL_USE = False`; no operational/authoritative mode.
 
 ## Current architecture
 
-`PDF → controlled intake → native-text capability gate → page-aware words →
-layout adapters → reciprocal/domain assembly → invariant validation →
-JSON/GeoJSON → search/package/report → artifact ZIP`
+`Browser → FastAPI/Pydantic upload gate → tracked bounded async task → PyMuPDF
+service → page-aware evidence → layout adapters → normalization/validation →
+Pydantic JSON response`
+
+- Local FastAPI is primary; it accepts one PDF up to exactly 5 MiB and never
+  persists source/result data.
+- Request I/O is awaited; synchronous native/domain processing runs through
+  bounded tracked `asyncio.to_thread` work on one supplied Uvicorn process.
+- Domain modules remain framework-independent; PyMuPDF is isolated to the PDF
+  application service.
+- Docker/Compose binds host loopback and applies non-root/read-only/capability/
+  CPU/memory/PID controls.
+- The earlier artifact flow remains available in the optional generated Colab:
+  `PDF → intake → evidence → adapters → validation → JSON/GeoJSON → ZIP`.
 
 - Uploads use `profile="auto"`; airport facts come only from that source.
 - `vobl-sample` is an explicit compatibility/regression profile and refuses a
@@ -86,16 +104,52 @@ JSON/GeoJSON → search/package/report → artifact ZIP`
 9. **HTML/UI safety.** Dynamic chart/AI text is escaped; no external UI assets.
 10. **Large/source data excluded.** Do not commit source PDFs or regenerable
     word/drawing/candidate dumps.
+11. **Local-first dependency separation.** FastAPI was selected over Django for
+    the stateless ASGI/OpenAPI/Pydantic use case. Application dependencies are
+    mandatory, but only the PDF service imports PyMuPDF and domain modules stay
+    framework-independent/stdlib-only.
+12. **Async is coordination, not isolation.** Reject overflow through bounded
+    non-blocking admission, await upload I/O, and retain an admitted token through
+    native work; threads cannot terminate hostile PDF work, so remote/adversarial
+    use requires process isolation and ingress controls.
 
 ## Workflow reminders
 
 - Test runner: `~/.pyenv/versions/3.11.15/bin/python -m pytest -q`.
-- Work/push branch: `feat/multi-airport-upload`; never push `main` unprompted.
+- Work/push branch: `feat/local-fastapi-app`; never push `main` unprompted.
 - Before push: fetch/rebase safely if needed, run full tests, regenerate notebook,
   inspect git diff/status.
 - GitHub PRs: use `gh api repos/{owner}/{repo}/pulls`, not `gh pr create`.
 
 ## Log (newest first)
+
+### 2026-08-19 — Local FastAPI application and infrastructure (verification pending)
+- Siva's local-portability mandate moved the primary workflow from Colab to a
+  FastAPI microservice and same-origin central PDF upload-to-JSON UI.
+- Added versioned Pydantic/OpenAPI contracts, Spring-style controller/DTO/service/
+  exception layers, exact 5 MiB extension/MIME/signature checks, and structured
+  problem details.
+- Added awaited upload I/O plus event-loop-safe, non-blocking bounded admission
+  and tracked cancellation-aware `asyncio.to_thread` PyMuPDF/domain work.
+- Added page/word/drawing/vector complexity limits and deterministic upload/PDF
+  cleanup; domain validation remains visible in returned research JSON.
+- Added local Uvicorn plus non-root/read-only/local-interface Docker/Compose with
+  health, tmpfs, capability, CPU, memory, and PID controls.
+- Recorded the dependency-rule change: application edges now require FastAPI,
+  Pydantic, PyMuPDF, multipart, and Uvicorn while the domain core stays stdlib and
+  framework-independent.
+- Added local architecture/operator, API standards, and project-specific Python
+  heap/stack/reference-counting/cyclic-GC/native-memory documentation.
+- Verification: 94 existing regressions, compileall, JavaScript syntax, diff,
+  HTML/Compose parsing, and wheel/package-data checks pass. Two semantic reviews
+  led to non-blocking bounded admission/503, disabled CDN docs, CSP, and aligned
+  problem media-type/OpenAPI fixes.
+- Remaining limitation: dependencies and Compose provider are absent in this
+  sandbox, so ASGI/native-PDF/container smoke is not claimed; no new tests were
+  added without an explicit request, and post-materialization PyMuPDF page
+  allocations remain a documented local-scope boundary.
+- Published implementation commit `3949a7e` on `feat/local-fastapi-app` and
+  opened [PR #4](https://github.com/yashpatle23/Airport-OCR/pull/4) into `main`.
 
 ### 2026-08-19 — Consolidated implementation documentation
 - Added `docs/PROJECT_IMPLEMENTATION_SUMMARY.md` as the single project-level

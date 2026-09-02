@@ -41,17 +41,25 @@
 
 ## 2. Dependency rules
 
-- **R2.1** Core runtime has **zero third-party dependencies** (`dependencies = []`
-  in `pyproject.toml`). Prefer the standard library.
-- **R2.2** Any new runtime dependency requires an explicit decision recorded in
-  [`Memory.md`](Memory.md) with justification. Default answer is "no".
-- **R2.3** PyMuPDF is allowed **only** off the runtime path (to produce the word/
-  vector dump). The core package must never `import fitz`/`pymupdf`.
+- **R2.1** The **domain core** (`coordinates`, `pdf_words`, `pipeline`,
+  `validation`, `holding`, `report`, `search`) remains framework-independent and
+  standard-library-only. The installable local application intentionally has
+  reviewed FastAPI/Pydantic/PyMuPDF/Uvicorn/multipart runtime dependencies.
+- **R2.2** Every new or changed runtime dependency requires an explicit decision
+  recorded in [`Memory.md`](Memory.md), with ownership, purpose, version policy,
+  and the layer allowed to import it.
+- **R2.3** Only `services/pdf_extraction.py` may import PyMuPDF on the application
+  request path. Domain modules must consume page evidence and never import
+  `fitz`/`pymupdf`.
 - **R2.4** Optional integrations (e.g. Gemini via `google-generativeai`) must be
   **lazy-imported inside a `try`** and degrade gracefully when absent.
 - **R2.5** The web UI and HTML report ship **no external assets, CDNs, scripts,
-  fonts, or network calls**. Everything is inline and offline.
-- **R2.6** `pytest` is the only dev dependency; keep it that way unless justified.
+  fonts, or network calls**. Everything is packaged and same-origin/offline.
+- **R2.6** `pytest` remains the only declared development dependency unless a
+  reviewed verification need is recorded. Application runtime dependencies are
+  not development-only dependencies.
+- **R2.7** `constraints-app.txt` records reviewed direct versions for local and
+  container installs; do not describe it as a hash-locked transitive lockfile.
 
 ## 3. Coding conventions
 
@@ -73,8 +81,9 @@
 - **R4.2** **HTML-escape every value** rendered in the UI or report (chart/AI
   text can contain injection payloads). This is already covered by tests — keep
   it that way.
-- **R4.3** The web app binds locally and is stateless (`/api/process` does not
-  persist). Do not add auth-less remote exposure or persistence without review.
+- **R4.3** Local web applications bind to loopback and are stateless. The primary
+  FastAPI upload API and legacy observation-JSON server must not gain auth-less
+  remote exposure or persistence without a reviewed architecture/security change.
 - **R4.4** No telemetry, analytics, or outbound calls from the core or UI.
 
 ## 5. AI-usage rules

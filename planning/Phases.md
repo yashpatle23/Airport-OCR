@@ -91,15 +91,37 @@ are published.
 **Exit gate met:** full tests, compileall, diff checks, deterministic notebook,
 remote commit/notebook lookup, and exact Git installer resolution all pass.
 
+## Phase 8 — Local application and infrastructure ✅ DELIVERED
+
+**Goal:** replace Colab as the primary development path with a portable local
+Python microservice and container profile.
+
+**Implemented:** FastAPI/Pydantic v1 API, central PDF upload-to-JSON UI, fixed
+5 MiB PDF checks, tracked bounded `asyncio.to_thread` extraction, PyMuPDF
+complexity controls, local Uvicorn launcher, hardened local-only Docker/Compose,
+API/architecture/operator documentation, and Python heap/stack/GC study.
+
+**Verification:** 94 existing regressions, compileall, JavaScript syntax, diff,
+HTML/Compose parsing, wheel build, and package-data inspection pass. Runtime
+ASGI/native-PDF and Compose startup smoke are not claimed because the sandbox
+lacks the application dependencies and Compose provider; the existing suite has
+no new API coverage because tests require an explicit request.
+
+**Delivery:** implementation commit `3949a7e` is published on
+`feat/local-fastapi-app`; [PR #4](https://github.com/yashpatle23/Airport-OCR/pull/4)
+targets `main`. Before any remote or hostile-input deployment, add dependency-
+enabled API/service regressions and a process-isolated parser with enforceable
+memory/CPU/time limits. Colab remains an optional old demo.
+
 ## Future phases
 
 | Phase | Goal | Gate |
 |-------|------|------|
-| **8 — OCR/image adapter** | Detect textless scans, render safely, OCR/layout candidates behind evidence contract | approved source rights + benchmark corpus |
-| **9 — Publisher/layout profiles** | Add positively detected adapters for other chart families | diverse permitted corpus; no filename-only profile selection |
-| **10 — SME review workflow** | Accept/reject taxiway/holding candidates and adjudicate claims | roles, audit trail, bitemporal decisions |
-| **11 — Multi-airport persistence** | Versioned store and API over reviewed packages | rights per source + release policy |
-| **12 — Hardening** | resource limits, differential parsing, CI/release packaging, observability | phases 8–11 |
+| **9 — OCR/image adapter** | Detect textless scans, render safely, OCR/layout candidates behind evidence contract | approved source rights + benchmark corpus |
+| **10 — Publisher/layout profiles** | Add positively detected adapters for other chart families | diverse permitted corpus; no filename-only profile selection |
+| **11 — SME review workflow** | Accept/reject taxiway/holding candidates and adjudicate claims | roles, audit trail, bitemporal decisions |
+| **12 — Multi-airport persistence** | Versioned store and API over reviewed packages | rights per source + release policy |
+| **13 — Hardening** | process isolation, ingress/rate/auth controls, fully resolved locking, observability | phases 9–12 |
 
 No future phase may relax [`Rules.md`](Rules.md): capability increases what is
 recorded, never what is asserted as authoritative.
