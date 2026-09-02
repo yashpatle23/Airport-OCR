@@ -96,10 +96,14 @@ remote commit/notebook lookup, and exact Git installer resolution all pass.
 **Goal:** replace Colab as the primary development path with a portable local
 Python microservice and container profile.
 
-**Implemented:** FastAPI/Pydantic v1 API, central PDF upload-to-JSON UI, fixed
-5 MiB PDF checks, tracked bounded `asyncio.to_thread` extraction, PyMuPDF
-complexity controls, local Uvicorn launcher, hardened local-only Docker/Compose,
-API/architecture/operator documentation, and Python heap/stack/GC study.
+**Implemented:** FastAPI/Pydantic v1 API, reliable central PDF upload, fixed
+5 MiB PDF checks, tracked bounded `asyncio.to_thread` processing, PyMuPDF
+complexity controls, and a complete request-scoped UI pipeline: run/intake,
+stage outline, positioned evidence, all core results, document research and
+diagnostics, GeoJSON search/no-tile map, Markdown/HTML report, individual
+artifacts, manifest, and browser-generated ZIP. Local Uvicorn, hardened local-
+only Docker/Compose, API/architecture/operator documentation, and Python
+heap/stack/GC study are included.
 
 **Verification:** 94 existing regressions, compileall, JavaScript syntax, diff,
 HTML/Compose parsing, wheel build, and package-data inspection pass. Runtime

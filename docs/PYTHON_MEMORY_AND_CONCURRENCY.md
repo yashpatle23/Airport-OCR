@@ -54,7 +54,14 @@ A successful request can overlap these allocations:
 4. MuPDF's parsed/decompressed native document structures;
 5. full page word lists and bounded black vector segments;
 6. observations plus normalized/GeoJSON/validation/package dictionaries;
-7. Pydantic response objects and encoded JSON bytes.
+7. the expanded API-owned response model, Markdown, HTML, and positioned-word
+   evidence graph;
+8. one encoded JSON body, bounded to 64 MiB by default and 128 MiB maximum.
+
+The browser then retains the parsed response graph. Individual artifacts are
+serialized only when downloaded, but complete ZIP generation serializes and
+holds every artifact byte array plus ZIP headers and the final `Blob`; this can
+transiently multiply client memory beyond the response size.
 
 The fixed 5 MiB compressed file limit therefore does **not** imply a 5 MiB memory
 cost. A compact PDF can expand into large text/vector/native structures. The
@@ -112,10 +119,21 @@ concurrency limit.
 Airport-OCR uses a process-local bounded token queue for non-blocking admission
 before controller file reads. Requests receive a retryable `503` when every slot
 is active, so the application does not retain an unbounded queue of complete PDF
-payloads. An admitted tracked extraction task owns its token and is shielded from
-request cancellation. A disconnected request can therefore continue to consume
-payload/native/result memory until extraction returns, but it remains one of the
-fixed admitted slots. Shutdown awaits active tasks.
+payloads. An admitted tracked task owns its token and is shielded from request
+cancellation through native/domain work, nested Pydantic validation, and JSON
+encoding. The encoded body is rejected above the configured output limit. A
+custom response keeps the token until the client-facing ASGI body handoff
+completes and releases it exactly once on successful send, send failure, or
+disconnect. Pure ASGI safety-header middleware wraps and awaits the original
+`send`, avoiding an intermediate `BaseHTTPMiddleware` response stream. If a
+request owner disappears before a successful worker result can become a
+response, a completion callback releases that token. Shutdown awaits active
+tasks.
+
+This policy intentionally lets a slow body handoff occupy an extraction slot;
+it prevents multiple completed large response bodies from escaping the same
+capacity bound. It does not prove that a remote client has received or retained
+the bytes, and framework/server buffers still require measurement.
 
 Admission capacity is process-local. With concurrency `C` and Uvicorn workers
 `W`, up to `C × W` native extractions can run. The supplied runtime fixes `W=1`.
@@ -173,11 +191,16 @@ RSS with a safety margin:
 baseline interpreter/framework/native libraries
 + concurrent multipart/spool/payload peaks
 + concurrent expanded PDF/intermediate peaks
-+ concurrent response-serialization peaks
++ concurrent response-model and bounded encoded-body peaks
++ ASGI response handoff buffers
++ optional browser parsed-response/artifact/ZIP amplification
 + thread stacks and allocator headroom
 ```
 
-Keep the default concurrency at 2 or lower until measurements support more. A
+Keep the default concurrency at 2 or lower until measurements support more. The
+encoded API output defaults to a 64 MiB cap (`AIRPORT_OCR_MAX_PIPELINE_RESPONSE_BYTES`)
+and cannot be configured above 128 MiB; lowering it reduces the largest retained
+response body but does not cap PyMuPDF expansion or browser ZIP amplification. A
 512 MiB local limit is a guardrail, not a proven production capacity target. If
 OOM occurs, first reduce concurrency and complexity limits; do not merely force
 GC or increase memory without identifying the allocation source.

@@ -3,16 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Local, non-operational airport-chart PDF extraction">
-  <title>Airport-OCR Local</title>
+  <meta name="description" content="Local, non-operational airport-chart full PDF pipeline">
+  <title>Airport-OCR Local Pipeline</title>
   <link rel="stylesheet" href="/assets/styles.css">
 </head>
 <body>
   <header class="hero">
     <div>
-      <p class="eyebrow">LOCAL APPLICATION · RESEARCH ONLY</p>
+      <p class="eyebrow">LOCAL FULL PIPELINE · RESEARCH ONLY</p>
       <h1>Airport-OCR</h1>
-      <p class="subtitle">Upload a native-text aerodrome-chart PDF and inspect the extracted JSON locally.</p>
+      <p class="subtitle">Upload a native-text aerodrome-chart PDF and run intake, extraction, identification, validation, structuring, search, summary, report, and artifact generation locally.</p>
     </div>
     <div class="status" id="health-status" aria-live="polite">Checking service…</div>
   </header>
@@ -27,26 +27,26 @@
       <div class="section-heading">
         <div>
           <p class="step">STEP 1</p>
-          <h2 id="upload-title">Upload one PDF</h2>
+          <h2 id="upload-title">Upload one chart PDF</h2>
         </div>
-        <span class="limit">PDF only · maximum 5 MiB</span>
+        <span class="limit">PDF only · maximum 5 MiB · processed locally</span>
       </div>
 
-      <form id="upload-form">
+      <form id="upload-form" novalidate>
         <label class="drop-zone" for="pdf-file" id="drop-zone">
-          <input id="pdf-file" name="file" type="file" accept="application/pdf,.pdf" required>
+          <input id="pdf-file" name="file" type="file" accept="application/pdf,.pdf" aria-required="true">
           <span class="drop-icon" aria-hidden="true">⇧</span>
-          <span class="drop-title">Choose an aerodrome-chart PDF</span>
+          <span class="drop-title">Choose or drop an aerodrome-chart PDF</span>
           <span class="drop-copy" id="file-label">No file selected</span>
         </label>
 
         <label class="permission-row">
-          <input id="permission-confirmed" type="checkbox" required>
+          <input id="permission-confirmed" type="checkbox" aria-required="true">
           <span>I confirm I am permitted to process this file. This attestation is recorded but not independently verified.</span>
         </label>
 
         <div class="actions">
-          <button type="submit" id="extract-button">Extract PDF</button>
+          <button type="submit" id="extract-button">Run full pipeline</button>
           <button type="button" class="secondary" id="reset-button">Reset</button>
         </div>
       </form>
@@ -54,34 +54,119 @@
       <div id="error-panel" class="error-panel" role="alert" hidden></div>
     </section>
 
-    <section class="panel result-panel" id="result-panel" hidden aria-labelledby="result-title">
-      <div class="section-heading result-heading">
-        <div>
-          <p class="step">STEP 2</p>
-          <h2 id="result-title">Extracted data</h2>
+    <div id="result-panel" hidden>
+      <section class="panel" aria-labelledby="overview-title">
+        <div class="section-heading">
+          <div>
+            <p class="step">STEP 2</p>
+            <h2 id="overview-title">Run overview</h2>
+          </div>
+          <span class="limit" id="run-id"></span>
         </div>
-        <div class="result-actions">
-          <label for="result-view" class="sr-only">JSON view</label>
-          <select id="result-view">
-            <option value="full">Complete response</option>
-            <option value="normalized">Normalized airport</option>
-            <option value="package">Structured package</option>
-            <option value="geojson">GeoJSON</option>
-            <option value="validation">Validation report</option>
-            <option value="observations">Source observations</option>
-            <option value="holding_candidates">Holding candidates</option>
-          </select>
-          <button type="button" class="secondary compact" id="copy-button">Copy JSON</button>
-          <button type="button" class="secondary compact" id="download-button">Download JSON</button>
+        <div class="summary-grid" id="summary-grid"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="pipeline-title">
+        <div class="section-heading">
+          <div>
+            <p class="step">PIPELINE OUTLINE</p>
+            <h2 id="pipeline-title">Complete local workflow</h2>
+          </div>
         </div>
-      </div>
-      <div class="summary-grid" id="summary-grid"></div>
-      <pre id="json-output" tabindex="0"></pre>
-    </section>
+        <ol class="pipeline-list" id="pipeline-list"></ol>
+      </section>
+
+      <section class="panel" aria-labelledby="summary-title">
+        <div class="section-heading">
+          <div>
+            <p class="step">DOCUMENT SUMMARY</p>
+            <h2 id="summary-title">Deterministic findings</h2>
+          </div>
+          <button type="button" class="secondary compact" id="download-report-button">Download HTML report</button>
+        </div>
+        <pre class="summary-output" id="summary-output" tabindex="0"></pre>
+      </section>
+
+      <section class="panel" aria-labelledby="research-title">
+        <div class="section-heading">
+          <div>
+            <p class="step">DOCUMENT RESEARCH</p>
+            <h2 id="research-title">Evidence, findings, and limitations</h2>
+          </div>
+        </div>
+        <div id="research-content" class="research-grid"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="search-title">
+        <div class="section-heading">
+          <div>
+            <p class="step">SEARCH + MAP</p>
+            <h2 id="search-title">Query the generated GeoJSON</h2>
+          </div>
+          <span class="limit">Provisional · no external map tiles</span>
+        </div>
+        <form id="search-form" class="search-form" novalidate>
+          <label>Feature type<input id="search-feature-type" type="text" placeholder="runway_threshold"></label>
+          <label>Designator<input id="search-designator" type="text" placeholder="07"></label>
+          <button type="submit" class="secondary">Search</button>
+          <button type="button" class="secondary" id="clear-search-button">Clear</button>
+        </form>
+        <p id="search-status" class="request-status"></p>
+        <div class="map-frame" id="map-frame" role="img" aria-label="Provisional airport feature map"></div>
+        <details>
+          <summary>Search result JSON</summary>
+          <pre id="search-output" class="compact-output" tabindex="0"></pre>
+        </details>
+      </section>
+
+      <section class="panel" aria-labelledby="artifact-title">
+        <div class="section-heading">
+          <div>
+            <p class="step">ARTIFACTS</p>
+            <h2 id="artifact-title">Colab-equivalent result files</h2>
+          </div>
+          <button type="button" id="download-all-button">Download complete ZIP</button>
+        </div>
+        <div class="artifact-table-wrap">
+          <table class="artifact-table">
+            <thead><tr><th>Artifact</th><th>Type</th><th>Size</th><th></th></tr></thead>
+            <tbody id="artifact-list"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel result-panel" aria-labelledby="result-title">
+        <div class="section-heading result-heading">
+          <div>
+            <p class="step">RAW DATA</p>
+            <h2 id="result-title">Inspect pipeline JSON</h2>
+          </div>
+          <div class="result-actions">
+            <label for="result-view" class="sr-only">JSON view</label>
+            <select id="result-view">
+              <option value="package">Structured package</option>
+              <option value="normalized">Normalized airport</option>
+              <option value="geojson">GeoJSON</option>
+              <option value="validation">Validation report</option>
+              <option value="observations">Source observations</option>
+              <option value="holding_candidates">Holding candidates</option>
+              <option value="words">Positioned words</option>
+              <option value="intake">Intake manifest</option>
+              <option value="research">Research outline</option>
+              <option value="manifest">Artifact manifest</option>
+              <option value="full">Complete response</option>
+            </select>
+            <button type="button" class="secondary compact" id="copy-button">Copy JSON</button>
+            <button type="button" class="secondary compact" id="download-button">Download view</button>
+          </div>
+        </div>
+        <pre id="json-output" tabindex="0"></pre>
+      </section>
+    </div>
   </main>
 
   <footer>
-    <span>PDF → Extract → Identify → Structure → JSON</span>
+    <span>PDF → Intake → Extract → Identify → Validate → Structure → Search → Report → ZIP</span>
     <a href="/api/openapi.json">OpenAPI JSON</a>
   </footer>
   <script src="/assets/app.js" defer></script>

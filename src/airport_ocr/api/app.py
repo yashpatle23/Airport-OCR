@@ -6,7 +6,7 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Optional, Set
+from typing import Any, Optional, Set
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -28,6 +28,42 @@ def _problem_response(problem: ProblemDetail) -> JSONResponse:
         content=problem.model_dump(mode="json"),
         media_type="application/problem+json",
     )
+
+
+class _SafetyHeadersMiddleware:
+    """Pure ASGI middleware that preserves client-facing send backpressure."""
+
+    def __init__(self, application: Any) -> None:
+        self.application = application
+
+    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
+        if scope["type"] != "http":
+            await self.application(scope, receive, send)
+            return
+
+        async def send_with_safety_headers(message: Any) -> None:
+            if message["type"] == "http.response.start":
+                headers = list(message.get("headers", []))
+                names = {name.lower() for name, _ in headers}
+                safety_headers = {
+                    b"x-operational-use": b"false",
+                    b"cache-control": b"no-store",
+                    b"x-content-type-options": b"nosniff",
+                    b"referrer-policy": b"no-referrer",
+                    b"content-security-policy": (
+                        b"default-src 'self'; object-src 'none'; base-uri 'none'; "
+                        b"form-action 'self'; frame-ancestors 'none'"
+                    ),
+                }
+                headers.extend(
+                    (name, value)
+                    for name, value in safety_headers.items()
+                    if name not in names
+                )
+                message["headers"] = headers
+            await send(message)
+
+        await self.application(scope, receive, send_with_safety_headers)
 
 
 def create_app(settings: Optional[AppSettings] = None) -> FastAPI:
@@ -60,19 +96,7 @@ def create_app(settings: Optional[AppSettings] = None) -> FastAPI:
         lifespan=lifespan,
     )
     application.state.settings = resolved
-
-    @application.middleware("http")
-    async def safety_headers(request: Request, call_next):
-        response = await call_next(request)
-        response.headers["X-Operational-Use"] = "false"
-        response.headers["Cache-Control"] = "no-store"
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["Referrer-Policy"] = "no-referrer"
-        response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; object-src 'none'; base-uri 'none'; "
-            "form-action 'self'; frame-ancestors 'none'"
-        )
-        return response
+    application.add_middleware(_SafetyHeadersMiddleware)
 
     @application.exception_handler(ApplicationError)
     async def application_error_handler(

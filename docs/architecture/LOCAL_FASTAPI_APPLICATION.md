@@ -12,8 +12,12 @@ coordination, but not an ORM, admin site, sessions, or server-rendered templates
 The generated Colab notebook remains an optional immutable demonstration.
 
 The application accepts one permitted native-text aerodrome-chart PDF, enforces a
-fixed 5 MiB file limit, extracts the supported evidence, and returns the complete
-research result as JSON. It persists neither uploads nor results.
+fixed 5 MiB file limit, and runs the same deterministic stages as the generated
+Colab pipeline. The browser presents the stage outline, complete evidence/results,
+document-derived research and limitations, search/map, deterministic summary,
+self-contained report, individual artifacts, manifest, and a complete ZIP. The
+service persists neither uploads nor results; the browser constructs downloads
+in memory. Optional AI paraphrasing is skipped by the offline local pipeline.
 
 ## 2. Component model
 
@@ -34,10 +38,17 @@ Synchronous PDF application service     services/pdf_extraction.py
   └─ deterministic domain calls
         ▼
 Framework-independent domain core
-  pdf_words → pipeline → validation → holding/report
+  pdf_words → pipeline → validation → holding/search/report
         │
         ▼
-Pydantic response envelope → JSON UI
+Pydantic full-pipeline response
+  ├─ run/intake + positioned-word evidence + all core results
+  ├─ stage outline + document research + summary + HTML report
+  └─ artifact descriptors + manifest
+        │
+        ▼
+Same-origin UI
+  overview · outline · research · search/SVG map · raw JSON · files/ZIP
 ```
 
 The layers mirror common Spring Boot separation without turning the deterministic
@@ -63,17 +74,38 @@ core into framework classes:
    controller file reads. If all slots are active, the request receives a
    retryable `503` instead of retaining an in-memory extraction backlog. The
    queue is created in ASGI lifespan on Uvicorn's event loop.
-7. `asyncio.to_thread` moves synchronous PyMuPDF and domain work off the event
-   loop. A shielded tracked task retains its admission token if the client
-   disconnects; shutting down waits for active native work to finish.
+7. A shielded tracked task uses `asyncio.to_thread` for synchronous PyMuPDF,
+   domain work, nested Pydantic validation, and one JSON encoding pass. The
+   admission token remains owned through all of these phases; shutting down
+   waits for active work to finish.
 8. After PyMuPDF materializes a page's word/drawing structures, the service
    applies page, native-word, per-page drawing, and total retained vector-segment
    rejection thresholds. These counters constrain retained/continued work but
    cannot prevent a single native page parse from allocating heavily. The
    document still closes in `finally`.
-9. The result is validated against the Pydantic response envelope and rendered
-   by the browser with `textContent`, not injected HTML.
-10. The upload is closed in the controller `finally` block.
+9. The typed `PipelineRunResponse` validates API-owned run/intake/stage/evidence/
+   research/summary/artifact/manifest wrappers and their cross-envelope
+   consistency. Independently versioned domain results remain dictionaries.
+   The encoded response is rejected with `422 PIPELINE_OUTPUT_LIMIT_EXCEEDED`
+   above `AIRPORT_OCR_MAX_PIPELINE_RESPONSE_BYTES` (64 MiB by default, bounded
+   to 1..128 MiB).
+10. A response wrapper retains the same admission token through the client-facing
+    ASGI body handoff and releases it exactly once on success, send failure, or
+    disconnect. Safety headers are applied by pure ASGI middleware that wraps and
+    awaits the original `send`; it does not interpose a `BaseHTTPMiddleware`
+    memory stream. If a disconnected owner abandons a successful worker result
+    before response creation, its completion callback releases the token instead.
+11. The browser uses one canonical selected-file state for picker and drag/drop;
+    empty browser MIME metadata is normalized to `application/pdf` only when the
+    `.pdf` file is submitted, while server signature validation remains
+    authoritative.
+12. Browser output uses `textContent`/DOM construction. Artifact sizes are not
+    eagerly serialized; individual files are generated on demand. The packaged
+    store-only ZIP serializes the full artifact set in browser memory and can
+    transiently amplify the already parsed response, so it should be generated
+    only when needed. No CDN, second extraction, server artifact directory, or
+    outbound AI call is used.
+13. The upload is closed in the controller `finally` block.
 
 The 5 MiB rule is an exact **file-part** policy, not a complete network ingress
 limit. Multipart headers add bytes, and the parser may spool data before the
@@ -91,7 +123,11 @@ work runs in worker threads. Important consequences:
   concurrency and memory, so the supplied command deliberately uses one worker;
 - worker threads are not a security sandbox and cannot be force-killed safely;
 - cancellation of an awaiting request does not stop already-running native code;
-- tracked tasks keep capacity reserved until native work actually returns;
+- tracked tasks keep capacity reserved through native work, response-model
+  validation, JSON materialization, and ASGI body handoff; abandoned successful
+  results and send failures release their token exactly once;
+- a slow response handoff can occupy an extraction slot by design, preventing
+  completed large bodies from accumulating outside the same capacity bound;
 - no extraction timeout is claimed, because timing out the coroutine would not
   terminate the PyMuPDF thread;
 - hostile/untrusted remote workloads need process isolation with OS CPU, memory,
@@ -101,10 +137,11 @@ work runs in worker threads. Important consequences:
 
 | Method | Path | Purpose |
 |---|---|---|
-| `GET` | `/` | Same-origin upload-to-JSON browser UI |
+| `GET` | `/` | Same-origin full pipeline browser UI |
 | `GET` | `/assets/*` | Packaged local CSS and JavaScript |
 | `GET` | `/api/v1/health` | Liveness, version, safety flag, fixed file limit |
-| `POST` | `/api/v1/extractions` | One multipart PDF extraction |
+| `POST` | `/api/v1/pipeline-runs` | Complete PDF-to-research-artifacts pipeline |
+| `POST` | `/api/v1/extractions` | Compact compatibility extraction |
 | `GET` | `/api/openapi.json` | OpenAPI contract (interactive CDN docs disabled) |
 
 See [`../API_STANDARDS.md`](../API_STANDARDS.md) for HTTP conventions.
@@ -127,15 +164,20 @@ Example health request:
 curl --fail http://127.0.0.1:8000/api/v1/health
 ```
 
-Example extraction:
+Example complete pipeline request:
 
 ```bash
 curl --fail-with-body \
   -F 'file=@chart.pdf;type=application/pdf' \
   -F 'permission_confirmed=true' \
   -F 'profile=auto' \
-  http://127.0.0.1:8000/api/v1/extractions
+  http://127.0.0.1:8000/api/v1/pipeline-runs \
+  --output pipeline-run.json
 ```
+
+The UI uses this endpoint and can download the Colab-equivalent artifact set as
+individual files or one ZIP. `/api/v1/extractions` remains available for clients
+that need only the earlier compact response.
 
 ## 7. Container operations
 

@@ -103,8 +103,13 @@ PDF → Extract → Identify → Structure → Search
 
 ### FR-7 Interfaces
 - **Local application (primary):** FastAPI/Pydantic microservice plus same-origin
-  browser UI; centrally upload one PDF, display/download extracted JSON, expose a
-  versioned OpenAPI contract, and return structured problem details.
+  browser UI; reliably choose or drag/drop one PDF and run intake, all-page
+  evidence extraction, identification, normalization/validation, search,
+  document-derived research/diagnostics, deterministic summary/report, and
+  artifact generation through one request-scoped pipeline.
+- **UI outputs:** stage outline, overview, Markdown summary, research/support
+  boundary, GeoJSON search and no-tile map, raw evidence/results, SHA-qualified
+  individual files, manifest, and complete in-browser ZIP.
 - **Upload policy:** require `.pdf`, `application/pdf`, `%PDF-`, explicit
   permission attestation, and a fixed maximum of 5 MiB (5,242,880 file bytes).
 - **Async boundary:** use `async`/`await` for request I/O and bounded tracked
@@ -140,7 +145,12 @@ PDF → Extract → Identify → Structure → Search
 
 - Local FastAPI is the documented primary workflow and runs from a clean virtual
   environment or the local-only Compose profile; Colab is optional/historical.
-- The browser centrally accepts one file and displays the complete JSON result.
+- The browser picker and fresh drag/drop path share one selected file, run the
+  complete pipeline, preserve the file for retry after an error, and expose the
+  full stage/summary/research/search/map/raw/artifact result without persistence.
+- The complete ZIP contains intake, positioned words, observations, holding
+  candidates, normalized JSON, GeoJSON, validation, package, Markdown summary,
+  self-contained HTML report, and manifest under the SHA-qualified run ID.
 - The API rejects non-PDF extension/MIME/signature, missing permission, files over
   5,242,880 bytes, and bounded document complexity with structured errors.
 - Request I/O uses `async`/`await`; synchronous PyMuPDF work is offloaded behind
