@@ -4,9 +4,12 @@ Turn aerodrome-chart PDFs into validated, normalized, searchable research data �
 
 ## Run the local application
 
-The primary delivery is now a portable FastAPI microservice with a same-origin
-browser UI. It accepts one PDF up to **5 MiB**, runs extraction asynchronously
-without blocking the ASGI event loop, and displays the complete structured JSON.
+The primary delivery is a portable FastAPI microservice with a same-origin
+browser UI. It accepts one PDF up to **5 MiB** and runs the complete request-
+scoped pipeline without blocking the ASGI event loop: controlled intake,
+all-page evidence extraction, identification, normalization/validation, search,
+document-derived research, deterministic summary/report, and artifact/ZIP
+generation. Uploads and results are not persisted by the application.
 
 ```bash
 python -m venv .venv
@@ -31,13 +34,16 @@ docker compose logs -f airport-ocr
 Compose publishes only to loopback, runs one non-root Uvicorn worker, uses a
 read-only root filesystem, and caps the container at 512 MiB, 1 CPU, and 128
 processes. The `/tmp` multipart spool is a 64 MiB memory-backed filesystem and
-shares the container memory budget. These are local-development defaults, not a
-public deployment profile.
+shares the container memory budget. Encoded API responses default to a 64 MiB
+cap (`AIRPORT_OCR_MAX_PIPELINE_RESPONSE_BYTES=67108864`, configurable from 1 to
+128 MiB); this limits generated JSON, not native PDF expansion or browser ZIP
+amplification. These are local-development defaults, not a public deployment
+profile.
 
 The application executes:
 
 ```text
-PDF → Intake → Extract → Identify → Validate → Structure → JSON
+PDF → Intake → Extract → Identify → Validate → Structure → Search → Research/Report → Artifacts/ZIP
 ```
 
 The earlier [upload-first Colab notebook](https://colab.research.google.com/github/yashpatle23/Airport-OCR/blob/4f180eca52dcbe1d35314b68e8c31ee14bf35056/notebooks/Airport_OCR_Full_Pipeline.ipynb)
@@ -76,10 +82,12 @@ resolved.
 
 ## What works now
 
-- **Local FastAPI application** — central browser upload, versioned OpenAPI,
-  Pydantic request/response DTOs, RFC-style problem details, strict PDF-only and
-  5 MiB enforcement, async chunk reads, bounded `asyncio.to_thread` extraction,
-  and formatted/downloadable JSON views.
+- **Local FastAPI full pipeline** — reliable picker/drag-and-drop upload,
+  versioned OpenAPI, Pydantic contracts, structured problem details, strict
+  PDF-only and 5 MiB enforcement, async chunk reads, bounded
+  `asyncio.to_thread` processing, and a complete UI for stage outline, summary,
+  document-derived research/diagnostics, GeoJSON search/map, raw evidence/results,
+  individual artifacts, self-contained HTML report, and one complete ZIP.
 - **Portable infrastructure** — local Uvicorn command plus non-root,
   local-interface Docker/Compose deployment with health checks, a read-only root
   filesystem, dropped capabilities, and CPU/memory/process limits.
@@ -113,8 +121,8 @@ resolved.
 
 ## Honest support boundary
 
-"Upload any airport map" means the notebook will intake and diagnose it safely;
-it does **not** mean every world-wide layout can be fully extracted today.
+"Upload any airport map" means the local application will intake and diagnose it
+safely; it does **not** mean every world-wide layout can be fully extracted today.
 
 - **Supported:** native-text AAI/ICAO-style aerodrome charts matching the current
   deterministic adapters.
@@ -218,25 +226,55 @@ pages = [
 json.dump(pages, open("chart-words.json", "w"))
 ```
 
+## Use the full browser pipeline
+
+1. Open `http://127.0.0.1:8000` and choose or drag exactly one PDF.
+2. Confirm permission and select **Run full pipeline**.
+3. Review the run overview and eight-stage pipeline outline.
+4. Inspect the deterministic document summary, document-derived research,
+   validation/blockers, extraction diagnostics, and provisional GeoJSON map.
+5. Search generated features by exact feature type or designator.
+6. Inspect raw intake, positioned words, observations, normalized data, GeoJSON,
+   validation, candidates, package, research, manifest, or complete response.
+7. Download any SHA-qualified artifact on demand or generate the complete
+   `<run-id>-airport-ocr-results.zip` in browser memory. The ZIP temporarily
+   retains all serialized artifacts, so generate it only when needed.
+
+The full local artifact set contains intake, positioned words, observations,
+holding candidates, normalized JSON, GeoJSON, validation, package, Markdown
+summary, self-contained HTML report, and manifest. Optional AI paraphrasing is
+explicitly `SKIPPED_OFFLINE_POLICY`; no API key or outbound model call is needed.
+If the browser has an older cached UI after updating the branch, restart the
+service and hard-refresh the page.
+
 ## Local FastAPI contract
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/` | same-origin PDF upload and JSON display UI |
+| GET | `/` | full same-origin PDF-to-research-artifacts UI |
 | GET | `/api/v1/health` | liveness, version, safety flag, and upload limit |
-| POST | `/api/v1/extractions` | multipart PDF extraction (`file`, `permission_confirmed`, `profile=auto`) |
+| POST | `/api/v1/pipeline-runs` | complete request-scoped pipeline used by the UI |
+| POST | `/api/v1/extractions` | compact compatibility extraction response |
 | GET | `/api/openapi.json` | machine-readable API contract (CDN-backed interactive docs disabled) |
 
-`POST /api/v1/extractions` requires a `.pdf` filename,
-`Content-Type: application/pdf`, `%PDF-` signature, permission attestation, and
-at most 5 MiB of uploaded file bytes. Expected errors use
-`application/problem+json`. Successful output includes intake metadata,
-observations, normalized JSON, GeoJSON, validation, holding candidates, the
-structured package, and deterministic summary.
+Both POST endpoints require a `.pdf` filename, `Content-Type: application/pdf`,
+`%PDF-` signature, permission attestation, `profile=auto`, and at most 5 MiB of
+uploaded file bytes. Expected errors use `application/problem+json`.
 
-The legacy observation-JSON stdlib server remains available through
-`airport-ocr serve` for compatibility. New local PDF workflows should use the
-FastAPI application.
+`POST /api/v1/pipeline-runs` adds run/intake metadata, a stage outline,
+positioned-word evidence, observations, normalized JSON, GeoJSON, validation,
+holding candidates, package, document-derived research/search examples,
+deterministic Markdown, escaped HTML report, artifact descriptors, and manifest.
+It makes no external research or AI claim: “research” means structured findings,
+evidence, diagnostics, support boundaries, and limitations derived from the PDF.
+API-owned nested envelopes are validated by Pydantic; domain documents retain
+their independent dictionary contracts. The encoded body is capped at 64 MiB by
+default, and the browser builds the final ZIP without server persistence or a CDN
+dependency.
+
+The legacy `/api/v1/extractions` and `airport-ocr serve` interfaces remain for
+compatibility. New local PDF workflows should use the pipeline UI or
+`/api/v1/pipeline-runs`.
 
 ## Exit codes
 

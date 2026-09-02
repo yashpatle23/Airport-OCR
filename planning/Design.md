@@ -114,19 +114,30 @@ lights `#bf00ff`. See [`Architecture.md`](Architecture.md) §6.
 
 ## 7. Local FastAPI interaction design
 
-- **Primary control:** one central drag/drop/select PDF area with filename/size
-  feedback and visible fixed 5 MiB limit.
-- **Consent:** extraction remains disabled by validation unless permission is
-  explicitly confirmed; the app does not imply rights verification.
-- **Progressive result:** show request state, a compact summary, and selectable
-  complete/normalized/GeoJSON/validation/candidate/package JSON views.
-- **Safe rendering:** construct summary DOM nodes and render JSON/errors with
-  `textContent`; never inject uploaded content as HTML.
-- **No external dependencies:** assets are packaged and same-origin; no CDN,
-  tiles, analytics, fonts, or outbound calls.
-- **Status language:** extraction completion does not mean operational validity;
-  partial, failed-validation, expected-blocker, and review-required states remain
-  visible.
+- **Primary control:** one canonical selected-file state backs central
+  drag/drop/picker input, filename/size feedback, retry after failure, and the
+  visible fixed 5 MiB limit. Native browser `required` validation must not block
+  a dropped file before application validation runs.
+- **Consent:** processing stops unless permission is explicitly confirmed; the
+  app records but never independently verifies rights.
+- **Progressive result:** show request state, run overview, complete stage outline,
+  deterministic Markdown summary, document-derived findings/diagnostics and
+  support boundary, validation states, GeoJSON search, no-tile SVG map, raw
+  intake/evidence/results, artifact inventory, HTML report, and complete ZIP.
+- **Safe rendering:** construct all in-page output with DOM nodes and
+  `textContent`; never inject uploaded content or the report HTML into the app.
+  The escaped report is offered as a separate download.
+- **Artifact lifecycle:** keep the parsed response in browser memory, serialize
+  individual files only when downloaded, and avoid eager table-size generation.
+  The store-only ZIP necessarily retains all artifact byte arrays plus the final
+  archive transiently; reset/page close discards state and the service persists
+  nothing. Server JSON is capped at 64 MiB by default, but client ZIP
+  amplification remains a documented boundary.
+- **No external dependencies:** assets and ZIP logic are packaged and same-
+  origin; no CDN, tiles, analytics, fonts, AI call, or outbound request.
+- **Status language:** completion does not mean operational validity; partial,
+  failed-validation, expected-blocker, and review-required states remain visible.
+  “Research” means PDF-derived evidence and diagnostics, not external authority.
 
 ## 8. Optional historical Colab interaction design
 

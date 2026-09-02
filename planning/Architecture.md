@@ -24,10 +24,11 @@ Page-aware evidence → layout adapters → domain assembly
   ▼
 Normalize + invariant validation + review/candidate states
   ▼
-Pydantic response envelope
-  ├─ observations / normalized JSON / GeoJSON / validation
-  ├─ holding candidates / package / deterministic summary
-  └─ same-origin JSON display/download
+Pydantic full-pipeline envelope
+  ├─ run/intake + all-page positioned-word evidence
+  ├─ observations / normalized JSON / GeoJSON / validation / candidates / package
+  ├─ pipeline outline + document research + search + Markdown/HTML report
+  └─ same-origin overview/map/raw views + individual artifacts + browser ZIP
 ```
 
 The primary development/runtime path is local FastAPI. The generated Colab
@@ -48,7 +49,7 @@ server remains for compatibility.
 | `holding.py` / `report.py` | review candidates, package and summary | standard-library domain core |
 | `intake.py`, `coordinates.py`, `search.py` | provenance, exact coordinates, search | standard library |
 | `webapp.py` / `webui.py` | legacy observation-JSON stdlib server | standard library |
-| `static/` | same-origin upload/JSON UI | browser platform only; no CDN |
+| `static/` | same-origin full pipeline, research, search/map and artifact/ZIP UI | browser platform only; no CDN |
 | `cli.py` / `__main__.py` | legacy/core command boundary | domain core |
 
 This is Spring-style separation—controller, DTO, application service, domain,
@@ -56,7 +57,8 @@ exception translation—without coupling domain modules to FastAPI or Pydantic.
 
 ## 3. Upload and extraction contract
 
-The primary endpoint is `POST /api/v1/extractions` with fields `file`,
+The primary endpoint is `POST /api/v1/pipeline-runs`; the compact
+`POST /api/v1/extractions` endpoint remains compatible. Both use fields `file`,
 `permission_confirmed=true`, and `profile=auto`.
 
 The controller requires:
@@ -84,12 +86,16 @@ body limit and a separate security review.
 - A bounded token queue is created inside ASGI lifespan on Uvicorn's event loop,
   including on Python 3.9. Admission is non-blocking; overflow receives `503`
   rather than becoming an in-memory queue.
-- An admitted tracked task calls
-  `asyncio.to_thread(extract_pdf_bytes, ...)` and retains its token until native
-  work returns.
-- Shielding prevents request cancellation from releasing capacity while native
-  work is still running. Finished tasks are consumed and shutdown waits for active
-  tasks.
+- An admitted tracked task calls either compact or full synchronous PDF service,
+  validates the corresponding Pydantic model, and materializes JSON bytes through
+  `asyncio.to_thread(...)`. The compact path shares core extraction but does not
+  build full-only research/report/artifact structures.
+- The same token remains owned through the bounded encoded-response check and
+  client-facing ASGI body handoff. Pure ASGI safety-header middleware wraps the
+  original `send` without an intermediate response stream. Shielding prevents
+  request cancellation from releasing capacity while native work is still
+  running; abandoned results/send failures return the token exactly once.
+  Finished tasks are consumed and shutdown waits for active tasks.
 - PyMuPDF/document traversal never executes directly on the event-loop thread.
 - Threads are not a parser sandbox and cannot be force-stopped. One Uvicorn
   worker is part of the supplied resource model; more workers multiply capacity.
@@ -133,7 +139,13 @@ Unknown optional layouts remain partial. Holding geometry remains `NEEDS_REVIEW`
 7. **Validation report** — failures versus expected blockers/info.
 8. **Holding candidates/package/summary** — review-only candidates and five
    requested feature groups.
-9. **Response envelope** — Pydantic-validated `v1`, always non-operational.
+9. **Full pipeline response** — run/intake, stage outline, positioned words,
+   results, document-derived research/search examples, Markdown/HTML summary,
+   offline-AI status, artifact descriptors, and manifest.
+10. **Browser artifact bundle** — SHA-qualified Colab-equivalent files and ZIP
+    constructed without server persistence or external assets.
+11. **Compact response** — the earlier extraction envelope retained for clients
+    that do not need complete evidence/artifacts.
 
 See [`../docs/API_STANDARDS.md`](../docs/API_STANDARDS.md).
 

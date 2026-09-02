@@ -30,21 +30,32 @@ airport-ocr-api --host 127.0.0.1 --port 8000
 Open <http://127.0.0.1:8000>, then:
 
 1. Drag/drop or choose exactly one permitted PDF no larger than 5 MiB.
-2. Confirm permission to process it.
-3. Select **Extract JSON locally**.
-4. Review the summary and switch among complete, normalized, GeoJSON,
-   validation, candidates, and package views.
-5. Copy or download the current JSON view.
+2. Confirm permission and select **Run full pipeline**.
+3. Review the overview and eight-stage outline from intake through artifacts.
+4. Show the deterministic document summary, document-derived research and
+   extraction diagnostics, support limitations, validation/blocker states, and
+   provisional search/map.
+5. Inspect positioned words, observations, normalized data, GeoJSON, validation,
+   candidates, package, manifest, and complete response.
+6. Download an individual SHA-qualified artifact, the escaped HTML report, or
+   the complete `<run-id>-airport-ocr-results.zip`.
 
 Talk through the gates:
 
+- one canonical picker/drop file state and explicit PDF/permission validation;
 - `.pdf` extension, exact PDF part MIME, fixed file-byte limit, and `%PDF-`;
 - Pydantic permission/profile validation and versioned OpenAPI/problem details;
-- awaited upload reads and tracked, bounded `asyncio.to_thread` native work;
+- awaited upload reads plus tracked bounded extraction, nested Pydantic
+  validation, one JSON encoding pass, a default 64 MiB output cap, and token
+  ownership through ASGI body handoff;
 - native-text capability check (a scanned PDF stops rather than guessing);
 - page/word/drawing/vector limits and deterministic document cleanup;
+- full request-scoped intake/evidence/extract/normalize/validate/search/report flow;
 - dynamic reciprocal runway pairing and CRS84 coordinates;
 - visible expected blockers and review-only holding candidates;
+- document-derived research is evidence/diagnostics, not external authority;
+- on-demand individual artifacts and an explicit in-browser ZIP action (which
+  transiently retains all artifact bytes), plus offline-AI skip (no API key required);
 - same-origin UI with no CDN, analytics, persistence, or outbound browser calls.
 
 ### Optional immutable Colab demo

@@ -207,8 +207,10 @@ Markdown, HTML, and the web UI.
 
 The primary browser application is now FastAPI. It provides:
 
-- `GET /` — central drag/drop/select PDF upload and JSON views;
-- `POST /api/v1/extractions` — versioned multipart extraction;
+- `GET /` — reliable picker/drag-and-drop full pipeline UI;
+- `POST /api/v1/pipeline-runs` — complete request-scoped PDF-to-research-
+  artifacts pipeline used by the browser;
+- `POST /api/v1/extractions` — compact backward-compatible extraction response;
 - `GET /api/v1/health` — liveness/version/fixed limit;
 - `GET /api/openapi.json` — machine-readable contract; the default Swagger UI
   is disabled because its CDN assets violate the offline/same-origin policy;
@@ -217,7 +219,14 @@ The primary browser application is now FastAPI. It provides:
   maximum 5,242,880 bytes;
 - awaited upload I/O and non-blocking bounded admission with tracked
   `asyncio.to_thread` native work;
-- packaged, same-origin, no-CDN assets that render JSON with `textContent`.
+- packaged, same-origin, no-CDN assets that render data through safe DOM/text;
+- overview and full stage outline, deterministic summary, document-derived
+  research/diagnostics and limitations, browser GeoJSON search, no-tile SVG map,
+  and raw intake/evidence/result views;
+- SHA-qualified individual downloads plus a complete Colab-equivalent ZIP built
+  in browser memory without server persistence;
+- explicit `SKIPPED_OFFLINE_POLICY` AI status—no API key or outbound model call
+  is required for the full deterministic pipeline.
 
 The CLI continues to provide:
 
@@ -289,12 +298,19 @@ A supported local run follows these steps:
 7. **Validate:** report passes, real failures, and expected blockers separately.
 8. **Structure:** produce JSON, GeoJSON, package, Markdown, HTML, and candidate
    artifacts.
-9. **Display/download:** return the complete response envelope to selectable
-   formatted JSON views; the optional Colab path can still create its historical ZIP.
+9. **Search/research/display:** query generated features, draw a provisional
+   no-tile map, and review document findings, diagnostics, support boundaries,
+   deterministic summary, and raw evidence/results.
+10. **Validate/encode/deliver:** validate API-owned nested wrappers, encode the
+    response once off the event loop, enforce the default 64 MiB output cap, and
+    retain admission through ASGI body handoff.
+11. **Download:** serialize SHA-qualified artifacts individually on demand or
+    build one complete ZIP in browser memory without service persistence. ZIP
+    generation transiently retains all artifact bytes and the final archive.
 
 ## 5. Output artifacts
 
-The upload-first run produces SHA-qualified artifacts including:
+The primary local run produces SHA-qualified artifacts including:
 
 - intake manifest;
 - page-aware PyMuPDF words dump;
@@ -305,9 +321,9 @@ The upload-first run produces SHA-qualified artifacts including:
 - validation report;
 - structured airport package;
 - deterministic Markdown summary;
-- optional AI paraphrase when configured;
+- explicit offline-AI skip status (no key or network required);
 - self-contained HTML report;
-- artifact manifest and complete result ZIP.
+- artifact manifest and complete result ZIP generated in browser memory.
 
 ## 6. Regression case studies
 

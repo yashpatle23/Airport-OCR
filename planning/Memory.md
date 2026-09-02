@@ -10,18 +10,25 @@ Companion docs: [`PRD.md`](PRD.md) · [`Architecture.md`](Architecture.md) ·
 
 - **Repo:** `yashpatle23/Airport-OCR`
 - **Working clone:** `/projects/sandbox/Airport-OCR-clone`
-- **Branch:** `feat/local-fastapi-app` (created from `feat/multi-airport-upload`).
-- **Current task:** version 0.3.0 local FastAPI application and infrastructure
-  are implemented, verified to the available sandbox boundary, and published.
-- **Review:** [PR #4](https://github.com/yashpatle23/Airport-OCR/pull/4) from
-  `feat/local-fastapi-app` into `main`.
+- **Branch:** `feat/full-pipeline-ui` (follow-up created after PR #4 merged).
+- **Current task:** version 0.3.0 local FastAPI drag/drop repair and complete
+  Colab-equivalent deterministic browser pipeline are implemented, behavior-
+  reviewed, and published for review.
+- **Review:** [PR #5](https://github.com/yashpatle23/Airport-OCR/pull/5) from
+  `feat/full-pipeline-ui` into `main`.
+- **Foundation review:** [PR #4](https://github.com/yashpatle23/Airport-OCR/pull/4)
+  merged the initial `feat/local-fastapi-app` delivery into `main`.
 - **Parent review:** [PR #3](https://github.com/yashpatle23/Airport-OCR/pull/3)
   contains the earlier multi-airport/Colab increment.
 - **Tests/checks:** **94/94 existing regressions pass**; compileall, Node
   JavaScript syntax, diff checks, HTML/Compose parsing, wheel build, and packaged
-  API/service/static-asset inspection pass. The sandbox lacks all FastAPI/PyMuPDF
-  runtime dependencies and a Compose provider, so ASGI/native/container smoke is
-  explicitly unverified and the existing suite does not cover the new API.
+  API/service/static-asset inspection pass. Manual fake-PyMuPDF VOMM service
+  smoke verifies 8 stages, 11 artifacts, status precedence, blocker counts, and
+  compact-path isolation; the actual browser ZIP writer produced a CRC-valid
+  archive. Final semantic review is **APPROVED** with no confirmed findings. The
+  sandbox lacks all FastAPI/PyMuPDF runtime dependencies and a Compose provider,
+  so ASGI/native/container smoke is explicitly unverified; binding R7.4
+  prohibited adding unrequested tests.
 - **Representative checks:** VOBL regression + source-shaped VOMM + scanned-PDF
   safe-stop + profile-mismatch rejection all pass.
 - **Notebook:** 22 cells; regeneration byte-identical; upload/default/ZIP/dynamic-
@@ -29,15 +36,16 @@ Companion docs: [`PRD.md`](PRD.md) · [`Architecture.md`](Architecture.md) ·
 - **Domain core:** Python 3.9+, framework-independent and stdlib-only.
 - **Application runtime:** FastAPI, Pydantic, PyMuPDF, python-multipart, Uvicorn;
   reviewed direct versions are in `constraints-app.txt`.
-- **Primary interface:** local FastAPI central PDF upload and JSON display;
-  generated Colab remains an optional immutable demo.
+- **Primary interface:** local FastAPI full pipeline UI with reliable PDF
+  picker/drop, outline, summary, document research, search/map, evidence/results,
+  and artifact ZIP; generated Colab remains an optional immutable demo.
 - **Safety:** `OPERATIONAL_USE = False`; no operational/authoritative mode.
 
 ## Current architecture
 
-`Browser → FastAPI/Pydantic upload gate → tracked bounded async task → PyMuPDF
-service → page-aware evidence → layout adapters → normalization/validation →
-Pydantic JSON response`
+`Browser → FastAPI upload gate → bounded tracked task → PyMuPDF/core → typed
+Pydantic full response → bounded JSON encoding → client-facing pure-ASGI body
+handoff → browser outline/map/raw artifacts/ZIP`
 
 - Local FastAPI is primary; it accepts one PDF up to exactly 5 MiB and never
   persists source/result data.
@@ -110,18 +118,68 @@ Pydantic JSON response`
     framework-independent/stdlib-only.
 12. **Async is coordination, not isolation.** Reject overflow through bounded
     non-blocking admission, await upload I/O, and retain an admitted token through
-    native work; threads cannot terminate hostile PDF work, so remote/adversarial
-    use requires process isolation and ingress controls.
+    native work, typed validation, bounded JSON encoding, and client-facing ASGI
+    body handoff. Pure ASGI safety middleware preserves send backpressure;
+    threads still cannot terminate hostile PDF work, so remote/adversarial use
+    requires process isolation and ingress controls.
+13. **Output memory is explicit.** Encoded API output defaults to 64 MiB and is
+    capped at 128 MiB. Individual browser artifacts serialize on demand; complete
+    ZIP generation transiently retains all artifact bytes and remains a documented
+    client-memory boundary.
 
 ## Workflow reminders
 
 - Test runner: `~/.pyenv/versions/3.11.15/bin/python -m pytest -q`.
-- Work/push branch: `feat/local-fastapi-app`; never push `main` unprompted.
+- Work/push branch: `feat/full-pipeline-ui`; never push `main` unprompted.
 - Before push: fetch/rebase safely if needed, run full tests, regenerate notebook,
   inspect git diff/status.
 - GitHub PRs: use `gh api repos/{owner}/{repo}/pulls`, not `gh pr create`.
 
 ## Log (newest first)
+
+### 2026-08-19 — Full UI pipeline behavior-review remediation
+- Split shared PDF/domain extraction from resource-specific assembly, so compact
+  `/extractions` no longer renders or depends on full-only research, HTML,
+  descriptors, or manifest work.
+- Composed run status with failed validation taking precedence, retained partial
+  and expected-blocker states, and corrected document-research blocker counts.
+- Replaced opaque API-owned dictionaries with strict nested Pydantic models and
+  cross-envelope stage, identity, digest, count, status, artifact, and manifest
+  consistency checks; independently versioned domain documents remain opaque.
+- Moved model validation and one JSON encoding pass into admitted worker work,
+  added a 64 MiB default/128 MiB maximum encoded-output limit, and retained the
+  token through client-facing body handoff with pure ASGI safety middleware and
+  exactly-once failure/disconnect/abandoned-result release paths.
+- Removed eager artifact-size serialization; individual artifacts are generated
+  on demand and browser ZIP amplification is documented explicitly.
+- Verification: 94 existing tests, compileall, JavaScript syntax, HTML/Compose
+  parsing, diff checks, wheel/package inspection, fake-PyMuPDF VOMM full/compact
+  smoke, failed-validation precedence, and actual JavaScript ZIP CRC validation
+  pass. Final semantic review is **APPROVED** with no confirmed findings.
+- Environment limitation: FastAPI, Pydantic, PyMuPDF, multipart, Uvicorn, and a
+  Compose provider remain unavailable in this sandbox, so real ASGI/native-PDF/
+  container startup is not claimed. No tests were added under binding R7.4.
+- Published implementation commit `a4271c3` on `feat/full-pipeline-ui` and opened
+  [PR #5](https://github.com/yashpatle23/Airport-OCR/pull/5) into `main`; PR #4
+  had already merged, so its closed branch was not reused.
+
+### 2026-08-19 — Full local UI pipeline and upload remediation
+- Confirmed the drag/drop failure: dropped files lived only in JavaScript while
+  the required native file input remained empty, so browser validation could
+  suppress submission. Replaced this with one canonical selected-file state,
+  explicit validation, native-input synchronization where supported, and retry
+  retention; empty browser MIME metadata is normalized only at multipart submit.
+- Added `POST /api/v1/pipeline-runs` while retaining compact `/extractions`.
+  The full response includes run/intake, stage outline, positioned words, all
+  deterministic results, document-derived research/diagnostics and search
+  examples, Markdown/HTML report, offline-AI status, artifacts, and manifest.
+- Rebuilt the same-origin UI around overview, pipeline outline, deterministic
+  summary, research/support boundary, GeoJSON search/no-tile SVG map, raw views,
+  individual downloads, and a packaged no-CDN browser ZIP writer.
+- The local pipeline now mirrors the Colab deterministic artifact set without
+  server persistence or API keys. External AI remains skipped by offline policy.
+- Initial static verification: compileall, JavaScript syntax, HTML parse, diff
+  checks, and all 94 existing regressions pass; behavior/package review remains.
 
 ### 2026-08-19 — Local FastAPI application and infrastructure (verification pending)
 - Siva's local-portability mandate moved the primary workflow from Colab to a
