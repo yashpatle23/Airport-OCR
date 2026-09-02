@@ -10,12 +10,14 @@ Companion docs: [`PRD.md`](PRD.md) · [`Architecture.md`](Architecture.md) ·
 
 - **Repo:** `yashpatle23/Airport-OCR`
 - **Working clone:** `/projects/sandbox/Airport-OCR-clone`
-- **Branch:** `feat/local-fastapi-app` (created from `feat/multi-airport-upload`).
+- **Branch:** `feat/full-pipeline-ui` (follow-up created after PR #4 merged).
 - **Current task:** version 0.3.0 local FastAPI drag/drop repair and complete
   Colab-equivalent deterministic browser pipeline are implemented, behavior-
-  reviewed, and awaiting publication to PR #4.
-- **Review:** [PR #4](https://github.com/yashpatle23/Airport-OCR/pull/4) from
-  `feat/local-fastapi-app` into `main`.
+  reviewed, and published for review.
+- **Review:** [PR #5](https://github.com/yashpatle23/Airport-OCR/pull/5) from
+  `feat/full-pipeline-ui` into `main`.
+- **Foundation review:** [PR #4](https://github.com/yashpatle23/Airport-OCR/pull/4)
+  merged the initial `feat/local-fastapi-app` delivery into `main`.
 - **Parent review:** [PR #3](https://github.com/yashpatle23/Airport-OCR/pull/3)
   contains the earlier multi-airport/Colab increment.
 - **Tests/checks:** **94/94 existing regressions pass**; compileall, Node
@@ -128,7 +130,7 @@ handoff → browser outline/map/raw artifacts/ZIP`
 ## Workflow reminders
 
 - Test runner: `~/.pyenv/versions/3.11.15/bin/python -m pytest -q`.
-- Work/push branch: `feat/local-fastapi-app`; never push `main` unprompted.
+- Work/push branch: `feat/full-pipeline-ui`; never push `main` unprompted.
 - Before push: fetch/rebase safely if needed, run full tests, regenerate notebook,
   inspect git diff/status.
 - GitHub PRs: use `gh api repos/{owner}/{repo}/pulls`, not `gh pr create`.
@@ -157,6 +159,9 @@ handoff → browser outline/map/raw artifacts/ZIP`
 - Environment limitation: FastAPI, Pydantic, PyMuPDF, multipart, Uvicorn, and a
   Compose provider remain unavailable in this sandbox, so real ASGI/native-PDF/
   container startup is not claimed. No tests were added under binding R7.4.
+- Published implementation commit `a4271c3` on `feat/full-pipeline-ui` and opened
+  [PR #5](https://github.com/yashpatle23/Airport-OCR/pull/5) into `main`; PR #4
+  had already merged, so its closed branch was not reused.
 
 ### 2026-08-19 — Full local UI pipeline and upload remediation
 - Confirmed the drag/drop failure: dropped files lived only in JavaScript while
